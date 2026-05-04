@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GD Home Fabric — Luxury Home Textiles</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --warm-white: #FAF8F4;
+    --beige: #E8DDD0;
+    --light-beige: #F0EBE3;
+    --deep-brown: #2C1F14;
+    --mid-brown: #5C4033;
+    --warm-brown: #8B6355;
+    --gold: #C9A96E;
+    --gold-light: #DFC28A;
+    --text-primary: #1A1208;
+    --text-secondary: #6B5744;
+    --text-muted: #A0907E;
+    --border: rgba(44,31,20,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--warm-white);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--cream); }
+  ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px;
+    height: 72px;
+    background: rgba(250,248,244,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    transition: all 0.4s ease;
+  }
+
+  nav.scrolled {
+    height: 60px;
+    background: rgba(250,248,244,0.98);
+    box-shadow: 0 2px 32px rgba(44,31,20,0.06);
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--deep-brown);
+    text-decoration: none;
+  }
+
+  .nav-logo span {
+    color: var(--gold);
+  }
+
+  .nav-links {
+    display: flex; gap: 36px; list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 1px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  .nav-links a:hover { color: var(--deep-brown); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+
+  .nav-actions {
+    display: flex; gap: 20px; align-items: center;
+  }
+
+  .nav-icon {
+    width: 22px; height: 22px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+
+  .nav-icon:hover { color: var(--deep-brown); }
+
+  .nav-cart {
+    position: relative;
+    display: flex; align-items: center;
+  }
+
+  .cart-badge {
+    position: absolute; top: -6px; right: -6px;
+    width: 16px; height: 16px;
+    background: var(--gold);
+    border-radius: 50%;
+    font-size: 9px;
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 500;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    height: 100vh; min-height: 700px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: 
+      linear-gradient(135deg, rgba(44,31,20,0.42) 0%, rgba(44,31,20,0.15) 50%, rgba(44,31,20,0.5) 100%),
+      url('https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1800&q=80') center/cover no-repeat;
+    transform: scale(1.05);
+    animation: heroZoom 8s ease-out forwards;
+  }
+
+  @keyframes heroZoom {
+    to { transform: scale(1); }
+  }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    text-align: center;
+    color: var(--warm-white);
+    padding: 0 24px;
+    animation: fadeUp 1.2s 0.4s both ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 24px;
+    font-weight: 400;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 400;
+    line-height: 1.08;
+    margin-bottom: 32px;
+    letter-spacing: -0.01em;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    opacity: 0.85;
+    margin-bottom: 48px;
+    max-width: 420px;
+    margin-left: auto; margin-right: auto;
+    line-height: 1.7;
+  }
+
+  .hero-cta-group {
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    padding: 16px 44px;
+    background: var(--gold);
+    color: var(--deep-brown);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+    border: none; cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--deep-brown);
+    transform: translateX(-100%);
+    transition: transform 0.35s ease;
+  }
+
+  .btn-primary:hover::before { transform: translateX(0); }
+  .btn-primary:hover { color: var(--gold); }
+  .btn-primary span { position: relative; z-index: 1; }
+
+  .btn-outline {
+    padding: 15px 44px;
+    background: transparent;
+    color: var(--warm-white);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 400;
+    border: 1px solid rgba(255,255,255,0.5);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.35s ease;
+  }
+
+  .btn-outline:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.8);
+  }
+
+  .hero-scroll {
+    position: absolute; bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    color: rgba(255,255,255,0.6);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    animation: bounce 2s infinite;
+  }
+
+  .hero-scroll-line {
+    width: 1px; height: 48px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.6), transparent);
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* ─── SECTION COMMONS ─── */
+  section { padding: 120px 0; }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 4vw, 56px);
+    font-weight: 400;
+    line-height: 1.12;
+    color: var(--deep-brown);
+    letter-spacing: -0.01em;
+  }
+
+  .section-title em { font-style: italic; }
+
+  .section-desc {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    max-width: 520px;
+    margin-top: 20px;
+  }
+
+  .divider {
+    width: 48px; height: 1px;
+    background: var(--gold);
+    margin: 32px 0;
+  }
+
+  /* ─── CATEGORIES ─── */
+  .categories-section { background: var(--cream); }
+
+  .categories-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 64px;
+    flex-wrap: wrap; gap: 24px;
+  }
+
+  .view-all {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+    transition: color 0.3s, border-color 0.3s;
+  }
+
+  .view-all:hover { color: var(--gold); border-color: var(--gold); }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 20px;
+  }
+
+  .category-card {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--beige);
+  }
+
+  .category-card:first-child { grid-row: span 2; }
+
+  .category-img {
+    width: 100%; height: 100%;
+    min-height: 280px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.7s ease;
+    filter: brightness(0.88);
+  }
+
+  .category-card:first-child .category-img { min-height: 580px; }
+
+  .category-card:hover .category-img {
+    transform: scale(1.06);
+    filter: brightness(0.78);
+  }
+
+  .category-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(44,31,20,0.7) 0%, transparent 55%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 32px;
+    transition: background 0.4s;
+  }
+
+  .category-card:hover .category-overlay {
+    background: linear-gradient(to top, rgba(44,31,20,0.85) 0%, rgba(44,31,20,0.1) 60%);
+  }
+
+  .category-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 10px;
+  }
+
+  .category-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--warm-white);
+    margin-bottom: 16px;
+  }
+
+  .category-card:first-child .category-name { font-size: 38px; }
+
+  .category-cta {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s ease;
+  }
+
+  .category-cta::after {
+    content: '→';
+    transition: transform 0.3s;
+  }
+
+  .category-card:hover .category-cta {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .category-card:hover .category-cta::after { transform: translateX(6px); }
+
+  /* ─── BEST SELLERS ─── */
+  .bestsellers-section { background: var(--warm-white); }
+
+  .bestsellers-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 64px;
+    flex-wrap: wrap; gap: 24px;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+  }
+
+  .product-card {
+    cursor: pointer;
+    group: true;
+  }
+
+  .product-img-wrap {
+    position: relative;
+    overflow: hidden;
+    background: var(--light-beige);
+    margin-bottom: 20px;
+    aspect-ratio: 3/4;
+  }
+
+  .product-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.7s ease;
+  }
+
+  .product-card:hover .product-img { transform: scale(1.06); }
+
+  .product-badge {
+    position: absolute; top: 16px; left: 16px;
+    padding: 6px 12px;
+    background: var(--deep-brown);
+    color: var(--cream);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .product-actions {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: flex; gap: 1px;
+    transform: translateY(100%);
+    transition: transform 0.4s ease;
+  }
+
+  .product-card:hover .product-actions { transform: translateY(0); }
+
+  .product-action-btn {
+    flex: 1;
+    padding: 14px 12px;
+    background: rgba(44,31,20,0.9);
+    color: var(--cream);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: none; cursor: pointer;
+    transition: background 0.2s;
+    backdrop-filter: blur(4px);
+  }
+
+  .product-action-btn:hover { background: var(--gold); color: var(--deep-brown); }
+  .product-action-btn:first-child { flex: 1.5; }
+
+  .product-info { padding: 0 4px; }
+
+  .product-category {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .product-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--deep-brown);
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .product-price-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .product-price {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+  }
+
+  .product-price-old {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+
+  .product-rating {
+    display: flex; gap: 3px; margin-top: 10px;
+  }
+
+  .star { color: var(--gold); font-size: 12px; }
+
+  /* ─── STORY SECTION ─── */
+  .story-section {
+    background: var(--deep-brown);
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 700px;
+  }
+
+  .story-img-side {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .story-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    min-height: 600px;
+    filter: brightness(0.85);
+    transition: transform 0.8s ease;
+  }
+
+  .story-img-side:hover .story-img { transform: scale(1.04); }
+
+  .story-img-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to right, rgba(44,31,20,0.3), transparent);
+  }
+
+  .story-content-side {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 80px 72px;
+    background: var(--deep-brown);
+  }
+
+  .story-section .section-label { color: var(--gold); }
+
+  .story-section .section-title { color: var(--cream); }
+
+  .story-section .section-desc { color: rgba(232,221,208,0.75); max-width: 420px; }
+
+  .story-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--gold-light);
+    line-height: 1.6;
+    margin: 40px 0;
+    padding-left: 24px;
+    border-left: 2px solid var(--gold);
+  }
+
+  .story-btn {
+    padding: 16px 44px;
+    background: transparent;
+    color: var(--cream);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 400;
+    border: 1px solid rgba(232,221,208,0.35);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    width: fit-content;
+    transition: all 0.35s ease;
+  }
+
+  .story-btn:hover {
+    background: var(--gold);
+    color: var(--deep-brown);
+    border-color: var(--gold);
+  }
+
+  /* ─── FEATURES ─── */
+  .features-section { background: var(--light-beige); }
+
+  .features-top {
+    text-align: center;
+    margin-bottom: 80px;
+  }
+
+  .features-top .section-desc {
+    margin: 20px auto 0;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+  }
+
+  .feature-card {
+    background: var(--cream);
+    padding: 52px 36px;
+    text-align: center;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+  }
+
+  .feature-card:hover { background: var(--warm-white); transform: translateY(-4px); }
+  .feature-card:hover::before { transform: scaleX(1); }
+
+  .feature-icon {
+    font-size: 36px;
+    margin-bottom: 24px;
+    display: block;
+  }
+
+  .feature-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--deep-brown);
+    margin-bottom: 16px;
+  }
+
+  .feature-desc {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  /* ─── REVIEWS ─── */
+  .reviews-section { background: var(--warm-white); }
+
+  .reviews-header {
+    text-align: center;
+    margin-bottom: 72px;
+  }
+
+  .reviews-header .divider { margin: 24px auto; }
+
+  .reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .review-card {
+    background: var(--cream);
+    padding: 44px 40px;
+    position: relative;
+    border: 1px solid var(--border);
+    transition: all 0.35s ease;
+  }
+
+  .review-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(44,31,20,0.08);
+  }
+
+  .review-quote-mark {
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    line-height: 0.6;
+    color: var(--gold);
+    opacity: 0.3;
+    margin-bottom: 24px;
+    display: block;
+  }
+
+  .review-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin-bottom: 32px;
+    font-style: italic;
+  }
+
+  .review-stars { margin-bottom: 20px; display: flex; gap: 3px; }
+
+  .review-author {
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  .review-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--beige);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--mid-brown);
+    font-weight: 400;
+    border: 1px solid var(--border);
+  }
+
+  .review-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--deep-brown);
+    letter-spacing: 0.04em;
+  }
+
+  .review-location {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  /* ─── NEWSLETTER ─── */
+  .newsletter-section {
+    background: var(--deep-brown);
+    padding: 100px 0;
+    text-align: center;
+  }
+
+  .newsletter-section .section-label { color: var(--gold); }
+  .newsletter-section .section-title { color: var(--cream); margin-bottom: 16px; }
+  .newsletter-section .section-desc { color: rgba(232,221,208,0.7); margin: 0 auto 48px; }
+
+  .newsletter-form {
+    display: flex; gap: 0; max-width: 480px; margin: 0 auto;
+  }
+
+  .newsletter-input {
+    flex: 1;
+    padding: 16px 24px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(232,221,208,0.2);
+    border-right: none;
+    color: var(--cream);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .newsletter-input::placeholder { color: rgba(232,221,208,0.4); }
+  .newsletter-input:focus { border-color: rgba(201,169,110,0.5); }
+
+  .newsletter-submit {
+    padding: 16px 32px;
+    background: var(--gold);
+    color: var(--deep-brown);
+    border: none;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.3s;
+  }
+
+  .newsletter-submit:hover { background: var(--gold-light); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--text-primary);
+    padding: 80px 0 40px;
+    color: rgba(232,221,208,0.6);
+  }
+
+  .footer-top {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 60px;
+    padding-bottom: 60px;
+    border-bottom: 1px solid rgba(232,221,208,0.08);
+    margin-bottom: 40px;
+  }
+
+  .footer-brand .nav-logo {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: var(--cream);
+    font-size: 24px;
+  }
+
+  .footer-brand-desc {
+    font-size: 13px;
+    line-height: 1.8;
+    font-weight: 300;
+    max-width: 280px;
+    margin-bottom: 28px;
+  }
+
+  .footer-social {
+    display: flex; gap: 14px;
+  }
+
+  .social-link {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(232,221,208,0.15);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(232,221,208,0.6);
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .social-link:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .footer-col h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 24px;
+    letter-spacing: 0.04em;
+  }
+
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+
+  .footer-links a {
+    font-size: 12.5px;
+    color: rgba(232,221,208,0.55);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.3s;
+  }
+
+  .footer-links a:hover { color: var(--gold); }
+
+  .footer-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+  }
+
+  .footer-copy {
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    color: rgba(232,221,208,0.35);
+  }
+
+  .footer-payments {
+    display: flex; gap: 10px; align-items: center;
+  }
+
+  .payment-tag {
+    padding: 4px 10px;
+    background: rgba(232,221,208,0.07);
+    border: 1px solid rgba(232,221,208,0.1);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: rgba(232,221,208,0.4);
+    border-radius: 2px;
+  }
+
+  /* ─── PRODUCT PAGE MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(26,18,8,0.7);
+    backdrop-filter: blur(6px);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  .modal {
+    background: var(--warm-white);
+    max-width: 980px; width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    animation: modalSlideUp 0.5s ease both;
+  }
+
+  @keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-close {
+    position: absolute; top: 20px; right: 20px; z-index: 10;
+    width: 40px; height: 40px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.3s;
+  }
+
+  .modal-close:hover {
+    background: var(--deep-brown);
+    color: var(--cream);
+    border-color: var(--deep-brown);
+  }
+
+  .modal-gallery {
+    position: relative;
+    background: var(--light-beige);
+  }
+
+  .modal-main-img {
+    width: 100%;
+    height: 520px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .modal-thumbs {
+    display: flex; gap: 8px; padding: 12px;
+    background: var(--cream);
+  }
+
+  .modal-thumb {
+    width: 72px; height: 72px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    opacity: 0.7;
+    transition: all 0.2s;
+  }
+
+  .modal-thumb:hover, .modal-thumb.active {
+    border-color: var(--gold);
+    opacity: 1;
+  }
+
+  .modal-info {
+    padding: 48px 44px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 400;
+    color: var(--deep-brown);
+    line-height: 1.2;
+    margin-bottom: 24px;
+  }
+
+  .modal-price {
+    font-size: 26px;
+    font-weight: 300;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+    margin-bottom: 32px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+
+  .modal-price-old {
+    font-size: 16px;
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .modal-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-weight: 300;
+    margin-bottom: 32px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+
+  .modal-option-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+
+  .size-options {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .size-btn {
+    padding: 9px 18px;
+    border: 1px solid var(--border);
+    background: var(--cream);
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.04em;
+  }
+
+  .size-btn:hover, .size-btn.active {
+    border-color: var(--deep-brown);
+    background: var(--deep-brown);
+    color: var(--cream);
+  }
+
+  .color-options {
+    display: flex; gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .color-dot {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    outline: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .color-dot:hover, .color-dot.active { outline-offset: 3px; outline-color: var(--gold); }
+
+  .modal-add {
+    padding: 18px 36px;
+    background: var(--deep-brown);
+    color: var(--cream);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 500;
+    border: none; cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.35s;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .modal-add::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.35s;
+  }
+
+  .modal-add:hover::before { transform: translateX(0); }
+  .modal-add:hover { color: var(--deep-brown); }
+  .modal-add span { position: relative; z-index: 1; }
+
+  .modal-wish {
+    padding: 16px 36px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 400;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s;
+  }
+
+  .modal-wish:hover { border-color: var(--gold); color: var(--gold); }
+
+  .modal-specs {
+    margin-top: 32px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+
+  .modal-spec-row {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+
+  .modal-spec-key {
+    width: 120px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+  }
+
+  .modal-spec-val {
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  /* ─── SCROLL ANIMATIONS ─── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 1024px) {
+    .products-grid { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 40px; }
+    .story-section { grid-template-columns: 1fr; }
+    .story-img { min-height: 380px; }
+    .story-content-side { padding: 60px 48px; }
+    .categories-grid { grid-template-columns: 1fr 1fr; }
+    .category-card:first-child { grid-row: span 1; grid-column: span 2; }
+    .category-card:first-child .category-img { min-height: 360px; }
+    .reviews-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 24px; }
+    .nav-links { display: none; }
+    .container { padding: 0 24px; }
+    section { padding: 80px 0; }
+    .hero-title { font-size: 48px; }
+    .categories-grid { grid-template-columns: 1fr; }
+    .category-card:first-child { grid-column: span 1; }
+    .products-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .reviews-grid { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr; gap: 32px; }
+    .newsletter-form { flex-direction: column; }
+    .newsletter-input { border-right: 1px solid rgba(232,221,208,0.2); }
+    .modal { grid-template-columns: 1fr; }
+    .modal-main-img { height: 300px; }
+    .story-content-side { padding: 48px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">GD <span>Home</span> Fabric</a>
+  <ul class="nav-links">
+    <li><a href="#">Collections</a></li>
+    <li><a href="#">Curtains</a></li>
+    <li><a href="#">Cushions</a></li>
+    <li><a href="#">Sets</a></li>
+    <li><a href="#">About</a></li>
+  </ul>
+  <div class="nav-actions">
+    <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path d="M21 21l-5.197-5.197M15.803 15.803A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+    </svg>
+    <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/>
+    </svg>
+    <div class="nav-cart">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"/>
+      </svg>
+      <span class="cart-badge">2</span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Spring / Summer Collection 2025</p>
+    <h1 class="hero-title">Where Fabric<br>Meets <em>Elegance</em></h1>
+    <p class="hero-sub">Curated luxury textiles for the discerning home. Crafted with intention, designed to endure.</p>
+    <div class="hero-cta-group">
+      <a href="#" class="btn-primary" onclick="openModal(); return false;"><span>Explore Collection</span></a>
+      <a href="#categories" class="btn-outline">Our Story</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="categories-section" id="categories">
+  <div class="container">
+    <div class="categories-header reveal">
+      <div>
+        <span class="section-label">Our Collections</span>
+        <h2 class="section-title">Crafted for<br><em>Every Space</em></h2>
+      </div>
+      <a href="#" class="view-all">View All Collections</a>
+    </div>
+    <div class="categories-grid">
+      <div class="category-card reveal">
+        <img class="category-img" src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=80" alt="Luxury Curtains">
+        <div class="category-overlay">
+          <span class="category-label">Featured</span>
+          <h3 class="category-name">Luxury Curtains</h3>
+          <span class="category-cta">Shop Now</span>
+        </div>
+      </div>
+      <div class="category-card reveal reveal-delay-1">
+        <img class="category-img" src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=700&q=80" alt="Cushion Covers">
+        <div class="category-overlay">
+          <span class="category-label">New In</span>
+          <h3 class="category-name">Cushion Covers</h3>
+          <span class="category-cta">Shop Now</span>
+        </div>
+      </div>
+      <div class="category-card reveal reveal-delay-2">
+        <img class="category-img" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=700&q=80" alt="Fabric Sets">
+        <div class="category-overlay">
+          <span class="category-label">Curated</span>
+          <h3 class="category-name">Complete Sets</h3>
+          <span class="category-cta">Shop Now</span>
+        </div>
+      </div>
+      <div class="category-card reveal reveal-delay-3">
+        <img class="category-img" src="https://images.unsplash.com/photo-1615529328331-f8917597711f?w=700&q=80" alt="Table Linen">
+        <div class="category-overlay">
+          <span class="category-label">Essentials</span>
+          <h3 class="category-name">Table Linen</h3>
+          <span class="category-cta">Shop Now</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BEST SELLERS -->
+<section class="bestsellers-section">
+  <div class="container">
+    <div class="bestsellers-header reveal">
+      <div>
+        <span class="section-label">Most Loved</span>
+        <h2 class="section-title">Best <em>Sellers</em></h2>
+      </div>
+      <a href="#" class="view-all">View All Products</a>
+    </div>
+    <div class="products-grid">
+      <div class="product-card reveal" onclick="openModal()">
+        <div class="product-img-wrap">
+          <img class="product-img" src="https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&q=80" alt="Velvet Drape">
+          <span class="product-badge">Bestseller</span>
+          <div class="product-actions">
+            <button class="product-action-btn" onclick="event.stopPropagation(); openModal()">Quick View</button>
+            <button class="product-action-btn">Add to Cart</button>
+          </div>
+        </div>
+        <div class="product-info">
+          <p class="product-category">Curtains</p>
+          <h3 class="product-name">Ivory Velvet Drape</h3>
+          <div class="product-price-row">
+            <span class="product-price">₹4,800</span>
+            <span class="product-price-old">₹6,200</span>
+          </div>
+          <div class="product-rating">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card reveal reveal-delay-1" onclick="openModal()">
+        <div class="product-img-wrap">
+          <img class="product-img" src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80" alt="Linen Cushion">
+          <div class="product-actions">
+            <button class="product-action-btn" onclick="event.stopPropagation(); openModal()">Quick View</button>
+            <button class="product-action-btn">Add to Cart</button>
+          </div>
+        </div>
+        <div class="product-info">
+          <p class="product-category">Cushion Covers</p>
+          <h3 class="product-name">Muted Linen Cushion Cover</h3>
+          <div class="product-price-row">
+            <span class="product-price">₹1,250</span>
+          </div>
+          <div class="product-rating">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card reveal reveal-delay-2" onclick="openModal()">
+        <div class="product-img-wrap">
+          <img class="product-img" src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80" alt="Sheer Panels">
+          <span class="product-badge">New</span>
+          <div class="product-actions">
+            <button class="product-action-btn" onclick="event.stopPropagation(); openModal()">Quick View</button>
+            <button class="product-action-btn">Add to Cart</button>
+          </div>
+        </div>
+        <div class="product-info">
+          <p class="product-category">Curtains</p>
+          <h3 class="product-name">Sheer Silk Panels</h3>
+          <div class="product-price-row">
+            <span class="product-price">₹6,400</span>
+          </div>
+          <div class="product-rating">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card reveal reveal-delay-3" onclick="openModal()">
+        <div class="product-img-wrap">
+          <img class="product-img" src="https://images.unsplash.com/photo-1615529328331-f8917597711f?w=600&q=80" alt="Linen Set">
+          <div class="product-actions">
+            <button class="product-action-btn" onclick="event.stopPropagation(); openModal()">Quick View</button>
+            <button class="product-action-btn">Add to Cart</button>
+          </div>
+        </div>
+        <div class="product-info">
+          <p class="product-category">Complete Sets</p>
+          <h3 class="product-name">Oatmeal Linen Set</h3>
+          <div class="product-price-row">
+            <span class="product-price">₹8,900</span>
+            <span class="product-price-old">₹11,500</span>
+          </div>
+          <div class="product-rating">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY / LIFESTYLE -->
+<section class="story-section">
+  <div class="story-img-side reveal">
+    <img class="story-img" src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&q=80" alt="Lifestyle">
+    <div class="story-img-overlay"></div>
+  </div>
+  <div class="story-content-side">
+    <div class="reveal">
+      <span class="section-label">Our Philosophy</span>
+      <h2 class="section-title" style="color:var(--cream)">The Art of<br><em>Slow Living</em></h2>
+      <div class="divider"></div>
+      <p class="section-desc" style="color:rgba(232,221,208,0.72)">We believe the home is a sanctuary. Every fabric we create is an invitation to slow down, to feel the difference that quality makes — in texture, in light, in the quiet luxury of everyday moments.</p>
+      <blockquote class="story-quote">"A room is not just a space — it is a feeling, and fabric is its voice."</blockquote>
+      <a href="#" class="story-btn">Discover Our Story</a>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section">
+  <div class="container">
+    <div class="features-top reveal">
+      <span class="section-label">Why GD Home Fabric</span>
+      <h2 class="section-title">The <em>Promise</em> of Premium</h2>
+      <p class="section-desc">Every detail considered. Every thread chosen. Every piece made for the long run.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <span class="feature-icon">✦</span>
+        <h3 class="feature-name">Premium Fabric</h3>
+        <p class="feature-desc">We source only the finest natural and blended textiles — linen, velvet, cotton, and silk — for softness and durability that lasts.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <span class="feature-icon">◈</span>
+        <h3 class="feature-name">Timeless Design</h3>
+        <p class="feature-desc">Rooted in restraint. Our designs are quiet but confident — pieces that complement any interior without competing with it.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <span class="feature-icon">⊕</span>
+        <h3 class="feature-name">Artisan Quality</h3>
+        <p class="feature-desc">Hand-finished seams, expert tailoring, and quality checks at every stage ensure every piece meets our exacting standards.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <span class="feature-icon">◎</span>
+        <h3 class="feature-name">Custom Sizing</h3>
+        <p class="feature-desc">Every window, every sofa, every space is different. We offer custom dimensions on all curtain and cushion collections.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="reviews-section">
+  <div class="container">
+    <div class="reviews-header reveal">
+      <span class="section-label">Client Stories</span>
+      <h2 class="section-title">Voices of <em>Appreciation</em></h2>
+      <div class="divider"></div>
+    </div>
+    <div class="reviews-grid">
+      <div class="review-card reveal">
+        <span class="review-quote-mark">"</span>
+        <div class="review-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <p class="review-text">The Ivory Velvet Drapes completely transformed our living room. The fabric has such weight and movement — it feels genuinely luxurious every single morning.</p>
+        <div class="review-author">
+          <div class="review-avatar">P</div>
+          <div>
+            <p class="review-name">Priya Sharma</p>
+            <p class="review-location">Mumbai, India</p>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal reveal-delay-1">
+        <span class="review-quote-mark">"</span>
+        <div class="review-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <p class="review-text">I ordered custom-sized curtains and the experience was seamless from start to finish. The quality exceeded everything I expected at this price point.</p>
+        <div class="review-author">
+          <div class="review-avatar">A</div>
+          <div>
+            <p class="review-name">Arjun Mehta</p>
+            <p class="review-location">Delhi, India</p>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal reveal-delay-2">
+        <span class="review-quote-mark">"</span>
+        <div class="review-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <p class="review-text">The linen cushion covers are everything — the muted tones, the texture, the stitching. Our entire home now has a cohesive, elegant feel we've been chasing for years.</p>
+        <div class="review-author">
+          <div class="review-avatar">R</div>
+          <div>
+            <p class="review-name">Rhea Nair</p>
+            <p class="review-location">Bangalore, India</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="newsletter-section">
+  <div class="container">
+    <span class="section-label">Stay Connected</span>
+    <h2 class="section-title">Curated for <em>You</em></h2>
+    <p class="section-desc">Be the first to discover new collections, exclusive offers, and interior inspiration — delivered thoughtfully.</p>
+    <div class="newsletter-form">
+      <input class="newsletter-input" type="email" placeholder="Your email address">
+      <button class="newsletter-submit">Subscribe</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo">GD <span>Home</span> Fabric</a>
+        <p class="footer-brand-desc">Luxury home textiles crafted for spaces that tell a story. Based in Jaipur, delivering across India.</p>
+        <div class="footer-social">
+          <a href="#" class="social-link">In</a>
+          <a href="#" class="social-link">Ig</a>
+          <a href="#" class="social-link">Fb</a>
+          <a href="#" class="social-link">Pi</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Collections</h4>
+        <ul class="footer-links">
+          <li><a href="#">Luxury Curtains</a></li>
+          <li><a href="#">Sheer Panels</a></li>
+          <li><a href="#">Cushion Covers</a></li>
+          <li><a href="#">Complete Sets</a></li>
+          <li><a href="#">Table Linen</a></li>
+          <li><a href="#">New Arrivals</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Information</h4>
+        <ul class="footer-links">
+          <li><a href="#">About GD Home</a></li>
+          <li><a href="#">Fabric Guide</a></li>
+          <li><a href="#">Care Instructions</a></li>
+          <li><a href="#">Custom Orders</a></li>
+          <li><a href="#">Interior Styling</a></li>
+          <li><a href="#">Trade Program</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Care</h4>
+        <ul class="footer-links">
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Shipping Policy</a></li>
+          <li><a href="#">Returns & Exchange</a></li>
+          <li><a href="#">Track Your Order</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 GD Home Fabric. All rights reserved. Crafted with care in Jaipur.</p>
+      <div class="footer-payments">
+        <span class="payment-tag">Visa</span>
+        <span class="payment-tag">Mastercard</span>
+        <span class="payment-tag">UPI</span>
+        <span class="payment-tag">Net Banking</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-gallery">
+      <img class="modal-main-img" id="mainImg" src="https://images.unsplash.com/photo-1540518614846-7eded433c457?w=900&q=80" alt="Product">
+      <div class="modal-thumbs">
+        <img class="modal-thumb active" src="https://images.unsplash.com/photo-1540518614846-7eded433c457?w=200&q=80" onclick="changeImg(this, 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=900&q=80')">
+        <img class="modal-thumb" src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=200&q=80" onclick="changeImg(this, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=80')">
+        <img class="modal-thumb" src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&q=80" onclick="changeImg(this, 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=900&q=80')">
+        <img class="modal-thumb" src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=200&q=80" onclick="changeImg(this, 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&q=80')">
+      </div>
+    </div>
+    <div class="modal-info">
+      <p class="modal-label">Curtains · Premium Collection</p>
+      <h2 class="modal-title">Ivory Velvet Drape</h2>
+      <div class="product-rating" style="margin-bottom:16px">
+        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        <span style="font-size:12px;color:var(--text-muted);margin-left:8px;font-weight:300">(48 reviews)</span>
+      </div>
+      <div class="modal-price">₹4,800 <span class="modal-price-old">₹6,200</span></div>
+      <p class="modal-desc">A celebration of quiet luxury — our Ivory Velvet Drape is crafted from 300gsm premium velvet, offering exceptional drape, light filtering, and an unmistakable softness. The ivory tone works beautifully with warm neutrals, natural wood, and gold accents.</p>
+      
+      <p class="modal-option-label">Select Size</p>
+      <div class="size-options">
+        <button class="size-btn">4.5 × 7 ft</button>
+        <button class="size-btn active">4.5 × 9 ft</button>
+        <button class="size-btn">5 × 9 ft</button>
+        <button class="size-btn">Custom</button>
+      </div>
+
+      <p class="modal-option-label">Select Colour</p>
+      <div class="color-options">
+        <div class="color-dot active" style="background:#F5F0E8;border:1px solid #ccc" title="Ivory"></div>
+        <div class="color-dot" style="background:#E8DDD0" title="Beige"></div>
+        <div class="color-dot" style="background:#C4B09A" title="Sand"></div>
+        <div class="color-dot" style="background:#5C4033" title="Walnut"></div>
+        <div class="color-dot" style="background:#2C1F14" title="Espresso"></div>
+      </div>
+
+      <button class="modal-add" onclick="addToCart()"><span>Add to Cart</span></button>
+      <button class="modal-wish">♡ &nbsp; Save to Wishlist</button>
+
+      <div class="modal-specs">
+        <div class="modal-spec-row">
+          <span class="modal-spec-key">Material</span>
+          <span class="modal-spec-val">300gsm Premium Velvet</span>
+        </div>
+        <div class="modal-spec-row">
+          <span class="modal-spec-key">Lining</span>
+          <span class="modal-spec-val">100% Cotton Lining</span>
+        </div>
+        <div class="modal-spec-row">
+          <span class="modal-spec-key">Care</span>
+          <span class="modal-spec-val">Dry Clean Recommended</span>
+        </div>
+        <div class="modal-spec-row">
+          <span class="modal-spec-key">Lead Time</span>
+          <span class="modal-spec-val">7–10 Business Days</span>
+        </div>
+        <div class="modal-spec-row">
+          <span class="modal-spec-key">Shipping</span>
+          <span class="modal-spec-val">Free across India</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="cartToast" style="
+  position:fixed; bottom:32px; right:32px; z-index:9999;
+  background:var(--deep-brown); color:var(--cream);
+  padding:16px 28px; font-size:12px; letter-spacing:0.1em;
+  display:none; align-items:center; gap:12px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.2);
+  animation: slideIn 0.4s ease;
+">
+  <span style="color:var(--gold)">✓</span> Added to Cart
+</div>
+
+<script>
+  // Navbar scroll effect
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(r => observer.observe(r));
+
+  // Modal
+  function openModal() {
+    const m = document.getElementById('productModal');
+    m.style.display = 'flex';
+    setTimeout(() => m.style.opacity = '1', 10);
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('productModal')) return;
+    const m = document.getElementById('productModal');
+    m.style.opacity = '0';
+    setTimeout(() => { m.style.display = 'none'; document.body.style.overflow = ''; }, 400);
+  }
+
+  function changeImg(el, src) {
+    document.getElementById('mainImg').src = src;
+    document.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function addToCart() {
+    const t = document.getElementById('cartToast');
+    t.style.display = 'flex';
+    const badge = document.querySelector('.cart-badge');
+    badge.textContent = parseInt(badge.textContent) + 1;
+    setTimeout(() => t.style.display = 'none', 2800);
+  }
+
+  // Size selection
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Color selection
+  document.querySelectorAll('.color-dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+      dot.classList.add('active');
+    });
+  });
+
+  // Smooth scroll
+  document.querySelectorAll('a[href="#categories"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById('categories').scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>
