@@ -8,7 +8,16 @@ const isStaticExport = process.env.STATIC_EXPORT === "1";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  ...(isStaticExport ? { output: "export" as const, trailingSlash: true } : {}),
+  // `ASSET_PREFIX=/static` moves the build output under /static for hosts that
+  // reserve top-level "_" names (e.g. claude.ai artifacts); plain static hosts
+  // (Netlify, GitHub Pages) need no prefix.
+  ...(isStaticExport
+    ? {
+        output: "export" as const,
+        trailingSlash: true,
+        ...(process.env.ASSET_PREFIX ? { assetPrefix: process.env.ASSET_PREFIX } : {}),
+      }
+    : {}),
   images: {
     formats: ["image/avif", "image/webp"],
     // Next 16 only serves qualities on this allowlist; these are the
