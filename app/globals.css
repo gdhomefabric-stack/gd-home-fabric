@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   GD Home Fabric — design tokens
+   Cream paper, warm stone, deep ink. Serif display + grotesk body.
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-paper: #faf7f2;        /* page background */
+  --color-paper-deep: #f1ebe2;   /* alternate section band */
+  --color-stone: #b9afa6;        /* preloader / soft panels */
+  --color-stone-deep: #6f655c;   /* muted labels: 5.3:1 on paper, AA at 11px */
+  --color-sand: #d9c9b4;         /* accent fills, hover washes */
+  --color-ink: #1c2230;          /* primary text */
+  --color-ink-soft: #4b5160;     /* body text */
+  --color-hairline: rgba(28, 34, 48, 0.14);
+
+  --font-display: "Instrument Serif", "Times New Roman", serif;
+  --font-body: "Hanken Grotesk", system-ui, sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+:root {
+  color-scheme: light;
+  --gutter: clamp(16px, 4vw, 48px);
+}
+
+html {
+  background: var(--color-paper);
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-sand);
+  color: var(--color-ink);
+}
+
+/* Display type: serif, tight leading, slight negative tracking */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+}
+
+/* Small caps labels used for nav, section indices, eyebrow text */
+.label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+/* On phones the label is the body of most controls and pills (the only CTA on
+   several sections), so it gets a point more; the desktop spec stays 11px. */
+@media (max-width: 639px) {
+  .label {
+    font-size: 12px;
+  }
+}
+
+/* Keyboard focus: an ink hairline instead of the browser's blue ring, in the
+   base layer so a component's own `focus-visible:` utilities still win. */
+@layer base {
+  :focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 4px;
+  }
+}
+
+/* Compact label for the fixed side index, which has to fit inside grid column 1.
+   Lives here (not as a utility) because `.label` is unlayered and would win. */
+.label-sm {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+/* Hairline rules */
+.rule {
+  border-top: 1px solid var(--color-hairline);
+}
+
+/* Underline-on-hover link (draws from left) */
+.link-line {
+  position: relative;
+  text-decoration: none;
+}
+.link-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.6s var(--ease-out-expo);
+}
+.link-line:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Enlarges a small link's hit area to ≥ 43px without moving its underline. */
+.tap {
+  position: relative;
+}
+.tap::before {
+  content: "";
+  position: absolute;
+  inset: -16px 0;
+}
+
+/* Full-bleed image containers keep a soft, matte finish */
+.img-matte img {
+  filter: saturate(0.92) contrast(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
