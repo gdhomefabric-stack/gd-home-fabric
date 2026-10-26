@@ -20,14 +20,20 @@ export type ImageAsset = {
 };
 
 export type Variant = {
+  /** "Standard" | "Queen" | "King"; absent for the cover */
+  sizeName?: string;
   /** e.g. "17 × 27 in" */
   size: string;
   /** e.g. "43 × 69 cm" */
   sizeMetric: string;
-  /** e.g. "Pack of 1" */
+  /** "Pack of 1" | "Pack of 2" | "1 piece" */
   pack: string;
-  /** Indian rupees, whole number */
+  /** Selling price on Amazon.in (FACTS.md, 26 Oct 2026), whole rupees */
   priceInr: number;
+  /** Amazon.in ASIN */
+  asin: string;
+  /** exactly https://www.amazon.in/dp/<asin> */
+  amazonUrl: string;
 };
 
 export type Product = {
@@ -35,20 +41,32 @@ export type Product = {
   name: string;
   /** one short line under the name on cards */
   tagline: string;
+  /**
+   * Short label shown on the card, in the finder and in structured data, e.g.
+   * "Cover only" (FACTS.md: the cover must always say so).
+   */
+  badge?: string;
   fill: string;
   shell: string;
+  /** schema.org `material` for structured data, e.g. "Goose feather" */
+  material: string;
   /** 1–3 short bullet benefits */
   benefits: string[];
   variants: Variant[];
-  /** key into images manifest, e.g. "product-01" */
-  imageKey: string;
+  /**
+   * Key into the images manifest. Left unset until the owner's own listing
+   * photos arrive: stock photography is never shown on a price-bearing card,
+   * so without it the card draws the product's outline to scale instead.
+   */
+  imageKey?: string;
   /** optional hover image key */
   imageHoverKey?: string;
-  bestFor: Array<"back" | "side" | "stomach" | "combination" | "support" | "decor">;
+  /** FACTS.md: suits back and side sleepers */
+  bestFor: Array<"back" | "side">;
 };
 
 export type Collection = {
-  /** "01".."06" — rendered as "(1)." like the reference site */
+  /** "01", "02" … rendered as "(1)." like the reference site */
   index: string;
   slug: string;
   title: string;
@@ -77,6 +95,7 @@ export type SizeRow = {
   sizeMetric: string;
   /** e.g. "Standard" | "Queen" | "King" */
   label: string;
+  /** the packs this size is sold in (rendered under "Packs") */
   bestFor: string;
 };
 
@@ -104,14 +123,19 @@ export type SiteContent = {
     paragraphs: string[];
     stats: Array<{ value: string; label: string }>;
   };
+  /** FACTS.md: shown next to every price block */
+  priceNote: string;
   sizeGuide: SizeRow[];
   finder: {
     title: string;
     intro: string;
-    positions: Array<{ id: Product["bestFor"][number]; label: string; hint: string }>;
-    firmness: Array<{ id: "soft" | "medium" | "firm"; label: string; hint: string }>;
-    /** map "position-firmness" -> product slug */
-    recommend: Record<string, string>;
+    sizes: Array<{ id: string; label: string; hint: string }>;
+    packs: Array<{ id: string; label: string; hint: string }>;
+    /**
+     * map "<size id>-<pack id>" -> the variant to show (by ASIN), with an
+     * optional note, e.g. a Queen single resolves to the Queen pair.
+     */
+    recommend: Record<string, { asin: string; note?: string }>;
   };
   care: Faq[];
   footer: {

@@ -25,13 +25,13 @@
  *   viewport would otherwise sit as an empty ruled line at the fold until the
  *   next scroll. The steps start after the title and body where the sticky
  *   block enters as one (≥lg), and from the first row on the stacked layout.
- *   The `(N).` index and the "N pillows" label slide in from the left
+ *   The `(N).` index and the "N items" label slide in from the left
  *   (`x -16 → 0`, opacity) once their row is in view.
  * - Photos: `ImageReveal` clip wipe + inner scale + scroll parallax (`0.1` for
  *   the upper photo, `0.06` for the lower) + scroll-velocity skew, with
  *   `data-cursor="view"` for the custom cursor. Hover scales the photo 1.04 / 1.2s.
- *   Each photo is a real `#range` link ("View the <title> pillows"), so the
- *   "View" cursor leads somewhere: the same glide as "Browse the pillows".
+ *   Each photo is a real `#range` link ("View <title> in the range"), so the
+ *   "View" cursor leads somewhere: the same glide as "See sizes and prices".
  * - Text column (≥lg): opacity 1 → 0.25 and y 0 → -24px (through `SPRING_SOFT`)
  *   as the sticky block is pushed out by the end of its grid row. The fade is
  *   keyed to the *measured* push point (sticky top + block height + bottom
@@ -89,7 +89,7 @@ const WIDE_QUERY = "(min-width: 1024px)";
 /** Responsive `sizes` for the photo column: cols 7–12 of a 1440px grid at ≥lg, half width (two across) below. */
 const PHOTO_SIZES = "(min-width: 1440px) 640px, (min-width: 1024px) 46vw, 50vw";
 
-/** The `(N).` index and the "N pillows" label slide in from the left. */
+/** The `(N).` index and the "N items" label slide in from the left. */
 const SLIDE_HIDDEN = { x: -16, opacity: 0 } as const;
 const SLIDE_SHOWN = { x: 0, opacity: 1 } as const;
 
@@ -264,7 +264,7 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
     transition: reduce ? { duration: 0 } : { duration: 1, delay, ease: EASE_OUT_EXPO },
   });
 
-  // "Browse the pillows" and both photos lead to the range: plain `#range`
+  // "See sizes and prices" and both photos lead to the range: plain `#range`
   // anchors, upgraded to the shared glide (`lib/scroll`) when JS is on. The
   // photos carry the "View" cursor, so they have to go somewhere; they are
   // named for the collection they show.
@@ -275,7 +275,7 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
     scrollToTarget(target, reduce);
     replaceHash("#range");
   };
-  const viewLabel = `View the ${collection.title} pillows`;
+  const viewLabel = `View ${collection.title} in the range`;
 
   const [keyA, keyB] = collection.imageKeys;
   const photoA = images[keyA];
@@ -328,7 +328,7 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
                   {formatIndex(collection.index)}
                 </motion.span>
                 <motion.span className="label text-stone-deep" {...slideIn(STEP)}>
-                  {productCount} {productCount === 1 ? "pillow" : "pillows"}
+                  {productCount} {productCount === 1 ? "item" : "items"}
                 </motion.span>
               </div>
 
@@ -366,7 +366,7 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
                   onClick={goToRange}
                   className="link-line label tap inline-block py-1 text-ink"
                 >
-                  Browse the pillows
+                  See sizes and prices
                 </a>
               </Reveal>
             </motion.div>

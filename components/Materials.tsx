@@ -170,7 +170,7 @@ export default function Materials({ materials, images }: MaterialsProps) {
         >
           <div className="flex flex-col gap-4">
             <Reveal>
-              <p className="label text-stone-deep">Fabrics we cut ourselves</p>
+              <p className="label text-stone-deep">Curtain fabrics and pillow cotton</p>
             </Reveal>
             <TextReveal
               as="h2"

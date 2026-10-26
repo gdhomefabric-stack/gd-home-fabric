@@ -37,7 +37,7 @@ export default function CreditsPage() {
         <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between md:h-20">
           <Link
             href="/"
-            aria-label={`${wordmark} — home`}
+            aria-label={`${wordmark}, home`}
             className="font-display text-[22px] leading-none tracking-tight md:text-[24px]"
           >
             {wordmark}

@@ -1,4 +1,4 @@
-import { content, isPlaceholder } from "@/lib/content";
+import { checkContent, content, isPlaceholder } from "@/lib/content";
 import { images, img, type ImageKey } from "@/lib/images";
 import type { ImageAsset, SiteContent } from "@/lib/types";
 import { ScrollVelocityProvider } from "@/lib/motion";
@@ -39,8 +39,13 @@ import Footer from "@/components/Footer";
  *
  * Structured data (Organization, WebSite and an ItemList of the range) is
  * emitted once as JSON-LD from this server component so crawlers get it in the
- * initial HTML; it is built from the same `content` the page renders.
+ * initial HTML; it is built from the same `content` the page renders. Each
+ * product carries one Offer per Amazon.in listing (ASIN, price, dp URL); the
+ * date-gated coupon is never part of it.
  */
+
+// Fails the build if a variant's link, ASIN or a finder answer is wrong.
+checkContent(content);
 
 /** The manifest entries for `keys` (unknown keys are skipped, not stubbed). */
 function pick(keys: Array<string | undefined>): Record<string, ImageAsset> {
@@ -56,35 +61,37 @@ function pick(keys: Array<string | undefined>): Record<string, ImageAsset> {
 /** Absolute URL for a public path ("/images/x.jpg" → "https://…/images/x.jpg"). */
 const absolute = (path: string) => `${SITE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 
-/** Shown (and emitted) while the address in `lib/content` is still a placeholder. */
-const ADDRESS_FALLBACK = "New Delhi NCR, India";
-
 /**
  * The footer's contact block with any unfilled placeholder removed on the
  * server. Footer already refuses to render a placeholder, but a client
  * component's props travel in the RSC payload, so without this "+91 XXXXX
- * XXXXX" would still sit in view-source. An empty WhatsApp value is treated as
- * absent by Footer (it needs ≥10 digits).
+ * XXXXX" would still sit in view-source. Empty values are treated as absent by
+ * Footer (WhatsApp needs ≥10 digits; email and address are simply skipped).
  */
 const footer: SiteContent["footer"] = {
   ...content.footer,
   whatsapp: isPlaceholder(content.footer.whatsapp) ? "" : content.footer.whatsapp,
-  address: isPlaceholder(content.footer.address) ? ADDRESS_FALLBACK : content.footer.address,
+  email: isPlaceholder(content.footer.email) ? "" : content.footer.email.trim(),
+  address: isPlaceholder(content.footer.address) ? "" : content.footer.address.trim(),
 };
 
-/** An Amazon storefront page, as opposed to the search-results URL the manifest ships with. */
+/**
+ * An Amazon storefront page, as opposed to a search-results page or the
+ * product page "Shop on Amazon.in" uses until the storefront URL is supplied.
+ */
 const isStorefrontUrl = (url: string) => {
   try {
     const { pathname } = new URL(url);
-    return !/^\/s\/?$/.test(pathname);
+    return !/^\/s\/?$/.test(pathname) && !/^\/dp\//.test(pathname);
   } catch {
     return false;
   }
 };
 
 /**
- * schema.org graph for the home page. Prices are whole rupees; each product
- * carries an AggregateOffer across its size/pack variants.
+ * schema.org graph for the home page. Prices are whole rupees (Amazon.in, 26
+ * Oct 2026); each product carries one Offer per size/pack listing, linking to
+ * that listing on Amazon.in (pillows are sold only there).
  */
 function structuredData() {
   const { products } = content;
@@ -99,17 +106,11 @@ function structuredData() {
     description: SITE_DESCRIPTION,
     image: absolute(OG_IMAGE.url),
     logo: absolute("/apple-icon.png"),
-    email: footer.email,
-    address: {
-      "@type": "PostalAddress",
-      // The one-line street address only once it is real (`footer` above has
-      // already swapped a placeholder for the fallback); locality and region
-      // are fixed, so the fallback never lands in `addressLocality`.
-      streetAddress: footer.address === ADDRESS_FALLBACK ? undefined : footer.address.trim(),
-      addressLocality: "New Delhi",
-      addressRegion: "Delhi",
-      addressCountry: "IN",
-    },
+    // Only once the owner has supplied them (`footer` above blanks placeholders).
+    email: footer.email || undefined,
+    address: footer.address
+      ? { "@type": "PostalAddress", streetAddress: footer.address }
+      : undefined,
     // Only a real storefront is a profile of the organisation.
     sameAs: isStorefrontUrl(footer.amazonStore) ? [footer.amazonStore] : undefined,
   };
@@ -131,8 +132,10 @@ function structuredData() {
     url: `${SITE_URL}/#range`,
     numberOfItems: products.length,
     itemListElement: products.map((product, i) => {
-      const prices = product.variants.map((v) => v.priceInr);
-      const photo = images[product.imageKey as ImageKey] as ImageAsset | undefined;
+      // Only the owner's own product photo, never stock (none is set yet).
+      const photo = product.imageKey
+        ? (images[product.imageKey as ImageKey] as ImageAsset | undefined)
+        : undefined;
       return {
         "@type": "ListItem",
         position: i + 1,
@@ -142,18 +145,18 @@ function structuredData() {
           name: product.name,
           description: product.tagline,
           image: photo ? absolute(photo.src) : undefined,
-          material: product.fill,
+          material: product.material,
           // Inline, not an `@id` reference: Google's Rich Results Test does
           // not resolve references for Product.brand.
           brand: { "@type": "Brand", name: SITE_NAME },
-          offers: {
-            "@type": "AggregateOffer",
+          offers: product.variants.map((v) => ({
+            "@type": "Offer",
+            sku: v.asin,
+            name: `${v.size} ${v.pack}`,
+            price: v.priceInr,
             priceCurrency: "INR",
-            lowPrice: Math.min(...prices),
-            highPrice: Math.max(...prices),
-            offerCount: product.variants.length,
-            url: `${SITE_URL}/#range`,
-          },
+            url: v.amazonUrl,
+          })),
         },
       };
     }),
@@ -166,7 +169,7 @@ function structuredData() {
 const jsonLd = JSON.stringify(structuredData()).replace(/</g, "\\u003c");
 
 export default function HomePage() {
-  const { brand, nav, collections, products, materials } = content;
+  const { brand, nav, collections, products, materials, priceNote } = content;
 
   const collectionImages = pick(collections.flatMap((c) => c.imageKeys));
   const productImages = pick(products.flatMap((p) => [p.imageKey, p.imageHoverKey]));
@@ -187,11 +190,16 @@ export default function HomePage() {
           <main id="top" className="relative z-10 bg-paper mb-[var(--footer-h,0px)]">
             <Hero image={img("hero")} headline={brand.heroHeadline} sub={brand.heroSub} />
             <Collections intro={brand.introLine} collections={collections} images={collectionImages} />
-            <ProductGrid products={products} images={productImages} />
+            <ProductGrid products={products} images={productImages} priceNote={priceNote} />
             <Materials materials={materials} images={materialImages} />
-            <Craft craft={content.craft} images={[img("craft-01"), img("craft-02"), img("craft-03")]} />
+            <Craft craft={content.craft} images={[img("product-01-alt"), img("product-01")]} />
             <SizeGuide rows={content.sizeGuide} />
-            <Finder finder={content.finder} products={products} images={finderImages} />
+            <Finder
+              finder={content.finder}
+              products={products}
+              images={finderImages}
+              priceNote={priceNote}
+            />
             <Care items={content.care} />
           </main>
 

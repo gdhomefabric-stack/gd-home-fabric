@@ -79,7 +79,7 @@ export default function Nav({ wordmark, menu, cta }: NavProps) {
        hides while the menu is open or something inside it has focus.
      - A scripted scroll never hides it. `lib/scroll` announces every
        programmatic glide (`gdhf:scroll-start`, with its planned duration)
-       — menu links, the side index, Enquire, "Browse the pillows", back to
+       — menu links, the side index, "See sizes and prices", back to
        top: the bar is shown at once and downward movement is ignored for
        that long plus a settle margin, then shown again once scrolling has
        paused for 700ms. A single step a whole viewport tall can only be a
@@ -331,7 +331,7 @@ export default function Nav({ wordmark, menu, cta }: NavProps) {
               <a
                 href="/"
                 onClick={onWordmark}
-                aria-label={`${wordmark} — back to top`}
+                aria-label={`${wordmark}, back to top`}
                 className="font-display tap inline-block text-[22px] leading-none tracking-tight md:text-[24px]"
               >
                 {wordmark}
@@ -345,7 +345,7 @@ export default function Nav({ wordmark, menu, cta }: NavProps) {
                     href={cta.href}
                     onClick={(e) => onBarLink(e, cta.href)}
                     target={ctaExternal ? "_blank" : undefined}
-                    rel={ctaExternal ? "noreferrer" : undefined}
+                    rel={ctaExternal ? "noopener noreferrer" : undefined}
                     className="label link-line tap inline-block py-1"
                   >
                     {cta.label}
@@ -528,14 +528,14 @@ export default function Nav({ wordmark, menu, cta }: NavProps) {
               >
                 <div className="rule flex flex-col gap-6 pt-6 md:flex-row md:items-end md:justify-between">
                   <div>
-                    <p className="label text-stone-deep">Get in touch</p>
+                    <p className="label text-stone-deep">Buy on Amazon.in</p>
                     {/* `tap` (::before) and `link-line` (::after) coexist; below
                         `sm` this is the only contact CTA reachable from the bar. */}
                     <a
                       href={cta.href}
                       onClick={(e) => onMenuLink(e, cta.href)}
                       target={ctaExternal ? "_blank" : undefined}
-                      rel={ctaExternal ? "noreferrer" : undefined}
+                      rel={ctaExternal ? "noopener noreferrer" : undefined}
                       className="link-line tap mt-3 inline-block font-display text-[clamp(24px,3vw,40px)] leading-[1.05]"
                     >
                       {cta.label}

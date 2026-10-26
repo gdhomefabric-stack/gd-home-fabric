@@ -247,8 +247,8 @@ export default function SizeGuide({ rows }: SizeGuideProps) {
           <div className="min-w-0 lg:col-span-7 lg:col-start-6">
             <table className="w-full border-collapse text-left">
               <caption className="sr-only">
-                Pillow sizes in inches and centimetres, with what each size is
-                best for.
+                Pillow sizes in inches and centimetres, with the packs each size is
+                sold in.
               </caption>
               <thead>
                 <tr className="border-t border-hairline">
@@ -265,7 +265,7 @@ export default function SizeGuide({ rows }: SizeGuideProps) {
                     <Reveal y={ROW_Y}>Name</Reveal>
                   </th>
                   <th scope="col" className="label py-4 text-stone-deep">
-                    <Reveal y={ROW_Y}>Best for</Reveal>
+                    <Reveal y={ROW_Y}>Packs</Reveal>
                   </th>
                 </tr>
               </thead>

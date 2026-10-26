@@ -146,9 +146,6 @@ function pinnedGeometry(h: number, vh: number) {
   return { vh, h, fits, pinnedTop, over };
 }
 
-/** Shown when the address in `lib/content` is still a placeholder. */
-const ADDRESS_FALLBACK = "New Delhi NCR, India";
-
 /**
  * wa.me wants digits only, country code included. While the number in
  * `lib/content` is still a placeholder ("+91 XXXXX XXXXX") we return null and
@@ -166,15 +163,16 @@ function whatsappHref(raw: string): string | null {
   return `https://wa.me/${digits.length === 10 ? `91${digits}` : digits}`;
 }
 
-function hostOf(url: string): string | null {
+function isUrl(url: string): boolean {
   try {
-    return new URL(url).hostname.replace(/^www\./, "");
+    new URL(url);
+    return true;
   } catch {
-    return null;
+    return false;
   }
 }
 
-/** ["WhatsApp", "email", "Amazon"] → "WhatsApp, email or Amazon" */
+/** ["WhatsApp", "email", "Amazon.in"] → "WhatsApp, email or Amazon.in" */
 function listChannels(names: string[]): string {
   if (names.length <= 1) return names[0] ?? "";
   return `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`;
@@ -416,8 +414,8 @@ export default function Footer({ footer, image, wordmark }: FooterProps) {
   const whatsapp = whatsappHref(footer.whatsapp);
   const email = footer.email.trim();
   const amazonStore = footer.amazonStore.trim();
-  const amazonHost = hostOf(amazonStore);
-  const address = isPlaceholder(footer.address) ? ADDRESS_FALLBACK : footer.address.trim();
+  // No address on the page until the owner supplies a real one.
+  const address = isPlaceholder(footer.address) ? "" : footer.address.trim();
 
   const links: ContactLink[] = [];
   if (whatsapp) {
@@ -438,17 +436,17 @@ export default function Footer({ footer, image, wordmark }: FooterProps) {
       external: false,
     });
   }
-  if (amazonHost && !isPlaceholder(amazonStore)) {
+  if (isUrl(amazonStore) && !isPlaceholder(amazonStore)) {
     links.push({
       key: "amazon",
-      label: "Amazon",
-      text: `Shop on ${amazonHost}`,
+      label: "Amazon.in",
+      text: "Shop on Amazon.in",
       href: amazonStore,
       external: true,
     });
   }
   const channels = listChannels(links.map((l) => (l.key === "email" ? "email" : l.label)));
-  const linkGrid = links.length >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2";
+  const linkGrid = links.length >= 3 ? "sm:grid-cols-3" : links.length === 2 ? "sm:grid-cols-2" : "";
 
   // `tap` enlarges the hit box to ≥43px without moving the `.link-line` underline.
   const linkClass =
@@ -520,7 +518,7 @@ export default function Footer({ footer, image, wordmark }: FooterProps) {
               trigger={trigger("head")}
               className="rule flex items-baseline justify-between gap-4 pt-5"
             >
-              <span className="label text-stone-deep">Enquire</span>
+              <span className="label text-stone-deep">Shop</span>
               <span className="label hidden text-stone-deep sm:inline">{channels}</span>
             </Reveal>
 
@@ -557,7 +555,7 @@ export default function Footer({ footer, image, wordmark }: FooterProps) {
                         href={link.href}
                         className={linkClass}
                         target={link.external ? "_blank" : undefined}
-                        rel={link.external ? "noreferrer" : undefined}
+                        rel={link.external ? "noopener noreferrer" : undefined}
                       >
                         {link.text}
                         {link.external ? (
@@ -582,9 +580,11 @@ export default function Footer({ footer, image, wordmark }: FooterProps) {
               trigger={trigger("foot")}
               className="rule flex flex-col gap-6 pt-6 sm:flex-row sm:items-start sm:justify-between"
             >
-              <address className="max-w-[36ch] not-italic text-ink-soft">{address}</address>
+              {address ? (
+                <address className="max-w-[36ch] not-italic text-ink-soft">{address}</address>
+              ) : null}
 
-              <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 sm:ml-auto">
                 <Magnetic>
                   <Link href="/credits" className="label link-line tap py-2 text-ink">
                     Image credits

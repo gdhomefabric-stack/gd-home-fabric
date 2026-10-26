@@ -27,7 +27,7 @@ export default function NotFound() {
         <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center md:h-20">
           <Link
             href="/"
-            aria-label={`${SITE_NAME} — home`}
+            aria-label={`${SITE_NAME}, home`}
             className="font-display text-[22px] leading-none tracking-tight md:text-[24px]"
           >
             {SITE_NAME.toUpperCase()}

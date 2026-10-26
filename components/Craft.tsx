@@ -173,7 +173,7 @@ export default function Craft({ craft, images }: CraftProps) {
         {craft.stats.length > 0 ? (
           <div
             data-index-avoid
-            className="rule mt-[clamp(64px,10vw,140px)] grid grid-cols-2 gap-x-6 gap-y-10 pt-8 md:grid-cols-4"
+            className="rule mt-[clamp(64px,10vw,140px)] grid grid-cols-2 gap-x-6 gap-y-10 pt-8 md:grid-cols-3"
           >
             {craft.stats.map((stat, i) => (
               <Stat

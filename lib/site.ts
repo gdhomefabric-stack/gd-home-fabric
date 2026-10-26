@@ -17,10 +17,10 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://gdhomefabr
 export const SITE_NAME = "GD Home Fabric";
 
 /** Default <title> for the home page; child routes use `"%s | GD Home Fabric"`. */
-export const SITE_TITLE = "GD Home Fabric | Pillows, tailored by hand";
+export const SITE_TITLE = "GD Home Fabric | Goose feather pillows on Amazon.in";
 
 export const SITE_DESCRIPTION =
-  "Goose-feather, down-alternative, memory-foam and natural-fill pillows, bolsters and cushion fillers, weighed to the gram and hand-finished in our own New Delhi workshop.";
+  "GD Home Fabric goose feather pillows with a 500 thread count pure cotton shell, in Standard 17 × 27 in, Queen 20 × 30 in and King 20 × 36 in. Sold only on Amazon.in.";
 
 export const SITE_LOCALE = "en_IN";
 
@@ -28,18 +28,13 @@ export const SITE_LOCALE = "en_IN";
 export const SITE_LEGAL_NAME = "HiChoice Exports";
 
 export const SITE_KEYWORDS = [
-  "pillows",
   "goose feather pillow",
-  "down pillow",
-  "microfibre pillow",
-  "memory foam pillow",
-  "cervical pillow",
-  "kapok pillow",
-  "body pillow",
-  "bolster",
-  "cushion fillers",
-  "handmade pillows India",
-  "New Delhi",
+  "feather pillow",
+  "500 thread count cotton pillow",
+  "17 x 27 pillow",
+  "20 x 30 pillow",
+  "20 x 36 pillow",
+  "pillow cover 17 x 27",
   "GD Home Fabric",
 ];
 
@@ -48,5 +43,5 @@ export const OG_IMAGE = {
   url: "/og.jpg",
   width: 1200,
   height: 630,
-  alt: "Two plump white pillows against a pale wooden headboard in soft morning light — GD Home Fabric",
+  alt: "Two plump white pillows against a pale wooden headboard in soft morning light, GD Home Fabric",
 } as const;

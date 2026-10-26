@@ -198,8 +198,8 @@ export default function Care({ items }: CareProps) {
             />
             <Reveal delay={0.1} className="mt-5">
               <p className="max-w-[34ch] text-[15px] leading-[1.7] text-ink-soft">
-                Washing, airing, fluffing — and how to tell when a pillow has given
-                its best. If your question isn&rsquo;t here, write to us.
+                Cleaning, airing and loft. Pillows are sold only on Amazon.in,
+                where the listing has the rest.
               </p>
             </Reveal>
           </div>

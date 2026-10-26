@@ -3,7 +3,7 @@
 // Same Playwright setup as tools/shot.mjs (desktop 1440x900, headless shell
 // from ~/confession-onboarding/.tools). Waits for the preloader (data-ready),
 // then drives the interactive states a scroll-only capture cannot reach —
-// menu overlay, product hover, finder chips, care accordion, curtain footer —
+// menu overlay, product hover, finder chips (Queen + Pack of 1), care accordion, curtain footer —
 // and writes one PNG per state plus interact.json (console errors, Lenis and
 // custom-cursor presence).
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -139,20 +139,27 @@ await page.waitForTimeout(200);
   await page.mouse.move(width - 40, height / 2, { steps: 4 });
 }
 
-// 3. Finder: stomach + firm.
+// 3. Finder: Queen + Pack of 1 (resolves to the Queen pair, with its note).
 {
   await scrollToSelector("#finder", 96);
   await page.waitForTimeout(1100);
-  const stomach = page.locator("#finder button[aria-pressed]", { hasText: /^\s*stomach\s*$/i });
-  const firm = page.locator("#finder button[aria-pressed]", { hasText: /^\s*firm\s*$/i });
-  const a = await clickCentre(stomach, 'finder "stomach" chip');
+  const queen = page.locator("#finder button[aria-pressed]", { hasText: /^\s*queen\s*$/i });
+  const single = page.locator("#finder button[aria-pressed]", { hasText: /^\s*pack of 1\s*$/i });
+  const a = await clickCentre(queen, 'finder "Queen" chip');
   await page.waitForTimeout(350);
-  const b = await clickCentre(firm, 'finder "firm" chip');
+  const b = await clickCentre(single, 'finder "Pack of 1" chip');
   await page.waitForTimeout(1000);
   const pressed = await page.evaluate(() =>
     [...document.querySelectorAll('#finder button[aria-pressed="true"]')].map((el) => el.textContent?.trim()),
   );
-  steps.push({ step: "i-03-finder", clickedStomach: a, clickedFirm: b, pressed });
+  const answer = await page.evaluate(() => {
+    const card = document.querySelector("#finder article");
+    return {
+      text: card?.textContent?.replace(/\s+/g, " ").trim() ?? null,
+      links: [...(card?.querySelectorAll("a[href]") ?? [])].map((a) => a.getAttribute("href")),
+    };
+  });
+  steps.push({ step: "i-03-finder", clickedQueen: a, clickedPackOf1: b, pressed, answer });
   await shot("i-03-finder");
   await page.mouse.move(width - 40, height / 2, { steps: 4 });
 }

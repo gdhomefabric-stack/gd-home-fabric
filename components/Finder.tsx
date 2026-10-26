@@ -1,21 +1,15 @@
 "use client";
 
-import { useCallback, useId, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, type Transition } from "motion/react";
 import type Lenis from "lenis";
-import type { ImageAsset, Product, SiteContent } from "@/lib/types";
+import type { ImageAsset, Product, SiteContent, Variant } from "@/lib/types";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
-import { replaceHash, scrollToTarget } from "@/lib/scroll";
-import {
-  Counter,
-  EASE_SOFT,
-  ImageReveal,
-  Reveal,
-  SPRING_SNAPPY,
-  TextReveal,
-  cn,
-} from "@/lib/motion";
+import { scrollToTarget } from "@/lib/scroll";
+import { PROMO_TEXT, formatInr, promoApplies, usePromo } from "@/lib/offer";
+import { EASE_SOFT, ImageReveal, Reveal, SPRING_SNAPPY, TextReveal, cn } from "@/lib/motion";
+import ProductPlate from "@/components/ProductPlate";
 
 declare global {
   interface Window {
@@ -30,17 +24,22 @@ declare global {
 }
 
 type FinderContent = SiteContent["finder"];
-type PositionId = FinderContent["positions"][number]["id"];
-type FirmnessId = FinderContent["firmness"][number]["id"];
 
 type FinderProps = {
   finder: FinderContent;
   products: Product[];
   images: Record<string, ImageAsset>;
+  /** FACTS.md: shown next to every price block */
+  priceNote: string;
 };
 
-const DEFAULT_POSITION: PositionId = "side";
-const DEFAULT_FIRMNESS: FirmnessId = "medium";
+/**
+ * Two questions, size × pack, and every answer is one Amazon.in listing
+ * (`finder.recommend`, checked at build time by `checkContent`). A Queen
+ * single resolves to the Queen pair with a note: there is no Queen single.
+ */
+const DEFAULT_SIZE = "standard";
+const DEFAULT_PACK = "1";
 
 /**
  * The recommendation card sits in cols 8–12 of a 12-col grid at `lg`
@@ -51,11 +50,11 @@ const CARD_SIZES =
   "(min-width: 1440px) 580px, (min-width: 1024px) 42vw, 100vw";
 
 /**
- * Recommendation photo box: 4:5 when stacked; beside the chips (≥lg) a
- * shallower 4:3 capped at 40vh, so "Our pick / name / price" land above the
- * fold of a 1440×900 window the moment a chip is pressed (price ≈ 845px).
+ * Answer picture box: a shallow 3:2, capped at 32vh beside the chips (≥lg),
+ * so "Your pick / name / price" land above the fold of a 1440×900 window the
+ * moment a chip is pressed.
  */
-const CARD_PHOTO_BOX = "aspect-[4/5] lg:aspect-[4/3] lg:max-h-[40vh]";
+const CARD_PHOTO_BOX = "aspect-[3/2] lg:max-h-[32vh]";
 
 /** Card stagger (MOTION.md): each reveal in the left column lands this much after the last. */
 const STEP = 0.07;
@@ -75,19 +74,7 @@ const INDEX_CLEAR =
 const LABEL_DELAY_MS = 180;
 
 /** One sliding pill per chip group (MOTION.md). */
-type PillId = "finder-pill-position" | "finder-pill-firmness";
-
-function formatInr(value: number): string {
-  return `₹${value.toLocaleString("en-IN")}`;
-}
-
-function fromPrice(product: Product): number | null {
-  if (product.variants.length === 0) return null;
-  return product.variants.reduce(
-    (min, v) => (v.priceInr < min ? v.priceInr : min),
-    product.variants[0].priceInr,
-  );
-}
+type PillId = "finder-pill-size" | "finder-pill-pack";
 
 /** Prefer `preferred` if the content offers it, else the first option. */
 function pickDefault<T extends string>(
@@ -250,35 +237,32 @@ function Question<T extends string>({
 }
 
 /* -------------------------------------------------------------------------- */
-/* Recommendation card                                                         */
+/* Answer card                                                                 */
 /* -------------------------------------------------------------------------- */
 
 type RecommendationProps = {
   product: Product;
+  variant: Variant;
+  /** e.g. "Queen 20 × 30 is sold as a pair only." */
+  note: string | undefined;
   image: ImageAsset | undefined;
-  /** e.g. "Side · Medium" */
+  /** e.g. "Standard · Pack of 1" */
   context: string;
+  priceNote: string;
+  promo: boolean;
   reduceMotion: boolean;
-  /**
-   * True once the visitor has pressed a chip: the card is then an answer they
-   * are looking at, so its price counts from mount instead of waiting to
-   * enter the in-view band (it can sit just under the band at 1440×900 and
-   * would otherwise read "₹0").
-   */
-  chosen: boolean;
-  onViewRange: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
 
 function Recommendation({
   product,
+  variant: v,
+  note,
   image,
   context,
+  priceNote,
+  promo,
   reduceMotion,
-  chosen,
-  onViewRange,
 }: RecommendationProps) {
-  const price = fromPrice(product);
-  const priceText = price !== null ? formatInr(price) : null;
   const benefits = product.benefits.slice(0, 3);
 
   const fade = (duration: number): Transition => ({
@@ -288,29 +272,29 @@ function Recommendation({
 
   return (
     <motion.article
-      aria-label={`Recommended: ${product.name}`}
+      aria-label={`Your pick: ${product.name}, ${v.size}, ${v.pack}`}
       initial={reduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1, transition: fade(0.7) }}
       exit={{ opacity: 0, pointerEvents: "none", transition: fade(0.45) }}
       className="group flex flex-col [grid-area:1/1]"
     >
-      {image ? (
-        // Clip wipe + settle on each new recommendation; the box clips its own
-        // parallax inner, so nothing escapes the card at 375px. At `lg` the
-        // photo is capped so the name and price stay above the fold at the
-        // moment a chip is chosen (the chips sit beside it, not above).
-        <ImageReveal
-          skew={false}
-          parallax={0.06}
-          className={cn("w-full bg-paper-deep", CARD_PHOTO_BOX)}
+      {/* Clip wipe + settle on each new answer; the box clips its own
+          parallax inner, so nothing escapes the card at 375px. No stock photo
+          on a price-bearing card: without the owner's own photo the card draws
+          the sizes to scale and picks out the chosen one. */}
+      <ImageReveal
+        skew={false}
+        parallax={image ? 0.06 : 0}
+        className={cn("w-full bg-paper-deep", CARD_PHOTO_BOX)}
+      >
+        <div
+          className={cn(
+            "absolute inset-0 will-change-transform",
+            !reduceMotion &&
+              "transition-transform duration-[1200ms] ease-out-expo group-hover:scale-[1.04]",
+          )}
         >
-          <div
-            className={cn(
-              "absolute inset-0 will-change-transform",
-              !reduceMotion &&
-                "transition-transform duration-[1200ms] ease-out-expo group-hover:scale-[1.04]",
-            )}
-          >
+          {image ? (
             <Image
               src={image.src}
               alt={image.alt}
@@ -319,25 +303,27 @@ function Recommendation({
               className="object-cover"
               style={image.objectPosition ? { objectPosition: image.objectPosition } : undefined}
             />
-          </div>
-        </ImageReveal>
-      ) : (
-        <div className={cn("img-matte relative w-full overflow-hidden bg-paper-deep", CARD_PHOTO_BOX)}>
-          <div aria-hidden="true" className="absolute inset-0 bg-stone/40" />
+          ) : (
+            <ProductPlate product={product} highlight={v.size} />
+          )}
         </div>
-      )}
+      </ImageReveal>
 
       <div className="mt-5 flex items-baseline justify-between gap-3">
-        <span className="label text-stone-deep">Our pick</span>
+        <span className="label text-stone-deep">Your pick</span>
         <span className="label text-stone-deep">{context}</span>
       </div>
 
-      <h3 className="font-display mt-3 text-[clamp(22px,2vw,28px)] text-ink">
-        {product.name}
-      </h3>
-      <p className="mt-1.5 text-[14px] leading-relaxed text-ink-soft">
-        {product.tagline}
+      <h3 className="font-display mt-3 text-[clamp(22px,2vw,28px)] text-ink">{product.name}</h3>
+      <p className="mt-1.5 text-[15px] text-ink">
+        {v.sizeName ? `${v.sizeName} ` : ""}
+        <span className="tabular-nums">{v.size}</span>{" "}
+        <span className="tabular-nums text-ink-soft">({v.sizeMetric})</span> · {v.pack}
       </p>
+
+      {note ? (
+        <p className="label mt-3 self-start border border-ink px-2 py-[5px] text-ink">{note}</p>
+      ) : null}
 
       {benefits.length > 0 ? (
         <ul role="list" className="rule mt-5 space-y-2 pt-4">
@@ -346,10 +332,7 @@ function Recommendation({
               key={benefit}
               className="flex items-start gap-3 text-[14px] leading-relaxed text-ink-soft"
             >
-              <span
-                aria-hidden="true"
-                className="mt-[11px] h-px w-4 shrink-0 bg-ink/40"
-              />
+              <span aria-hidden="true" className="mt-[11px] h-px w-4 shrink-0 bg-ink/40" />
               <span>{benefit}</span>
             </li>
           ))}
@@ -357,27 +340,32 @@ function Recommendation({
       ) : null}
 
       <div className="rule mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 pt-4">
-        {priceText !== null ? (
-          <p className="text-[14px] text-ink">
-            from{" "}
-            {/* AT reads the final price; the counting copy is decorative. */}
-            <span className="sr-only">{priceText}</span>
-            <span aria-hidden="true" className="tabular-nums">
-              <Counter value={priceText} trigger={chosen ? "immediate" : "view"} />
-            </span>
-          </p>
-        ) : (
-          <p className="text-[14px] text-ink-soft">Price on request</p>
-        )}
+        {/* A static price: never a count-up, which would read "₹0" before it runs. */}
+        <p className="text-[18px] tabular-nums text-ink">{formatInr(v.priceInr)}</p>
         {/* `tap` + `py-1`: 11px label → 51px effective target. */}
         <a
-          href="#range"
-          onClick={onViewRange}
+          href={v.amazonUrl}
+          target="_blank"
+          rel="noopener noreferrer"
           className="link-line label tap inline-block py-1 text-ink"
         >
-          View in range
+          Buy on Amazon.in
+          <span className="sr-only">
+            : {product.name}, {v.size}, {v.pack} (opens in a new tab)
+          </span>
+          <span aria-hidden="true" className="ml-1.5 inline-block">
+            ↗
+          </span>
         </a>
       </div>
+
+      {promo && promoApplies(v.pack) ? (
+        <p className="label mt-3 self-start border border-ink px-2 py-[5px] text-ink">
+          {PROMO_TEXT}
+        </p>
+      ) : null}
+
+      <p className="label mt-3 text-stone-deep">{priceNote}</p>
     </motion.article>
   );
 }
@@ -386,19 +374,15 @@ function Recommendation({
 /* Finder                                                                      */
 /* -------------------------------------------------------------------------- */
 
-export default function Finder({ finder, products, images }: FinderProps) {
+export default function Finder({ finder, products, images, priceNote }: FinderProps) {
   // Hydration-safe: `false` on the server and during hydration, then the real
   // preference, so `initial` matches the server-rendered styles.
   const reduceMotion = useReducedMotionSafe();
+  // Pack-of-2 coupon: client-side date check after mount (lib/offer).
+  const promo = usePromo();
 
-  const [position, setPosition] = useState<PositionId>(() =>
-    pickDefault(finder.positions, DEFAULT_POSITION),
-  );
-  const [firmness, setFirmness] = useState<FirmnessId>(() =>
-    pickDefault(finder.firmness, DEFAULT_FIRMNESS),
-  );
-  // Set on the first chip press; see `RecommendationProps.chosen`.
-  const [chosen, setChosen] = useState(false);
+  const [size, setSize] = useState<string>(() => pickDefault(finder.sizes, DEFAULT_SIZE));
+  const [pack, setPack] = useState<string>(() => pickDefault(finder.packs, DEFAULT_PACK));
 
   /**
    * A chip press must never change something the reader cannot see. Bring
@@ -418,55 +402,45 @@ export default function Finder({ finder, products, images }: FinderProps) {
     scrollToTarget(card, reduceMotion, 1);
   }, [reduceMotion]);
 
-  const choosePosition = useCallback(
-    (id: PositionId) => {
-      setPosition(id);
-      setChosen(true);
+  const chooseSize = useCallback(
+    (id: string) => {
+      setSize(id);
       revealCard();
     },
     [revealCard],
   );
-  const chooseFirmness = useCallback(
-    (id: FirmnessId) => {
-      setFirmness(id);
-      setChosen(true);
+  const choosePack = useCallback(
+    (id: string) => {
+      setPack(id);
       revealCard();
     },
     [revealCard],
   );
 
-  const comboKey = `${position}-${firmness}`;
+  const comboKey = `${size}-${pack}`;
+  const answer = finder.recommend[comboKey] as FinderContent["recommend"][string] | undefined;
 
-  const product = useMemo<Product | undefined>(() => {
-    const slug = finder.recommend[comboKey] as string | undefined;
-    const match = slug ? products.find((p) => p.slug === slug) : undefined;
-    return match ?? (products[0] as Product | undefined);
-  }, [finder.recommend, comboKey, products]);
+  // Every key resolves at build time (`checkContent`); no silent fallback to
+  // some other product if one ever did not.
+  const match = useMemo(() => {
+    if (!answer) return undefined;
+    for (const product of products) {
+      const variant = product.variants.find((v) => v.asin === answer.asin);
+      if (variant) return { product, variant };
+    }
+    return undefined;
+  }, [answer, products]);
 
-  const positionLabel =
-    finder.positions.find((p) => p.id === position)?.label ?? position;
-  const firmnessLabel =
-    finder.firmness.find((f) => f.id === firmness)?.label ?? firmness;
-  const context = `${positionLabel} · ${firmnessLabel}`;
+  const sizeLabel = finder.sizes.find((s) => s.id === size)?.label ?? size;
+  const packLabel = finder.packs.find((p) => p.id === pack)?.label ?? pack;
+  // Label the offer actually shown, not the raw selection: Queen + "Pack of 1"
+  // resolves to the Queen pair, so the corner must read "Pack of 2".
+  const context = `${sizeLabel} · ${match?.variant.pack ?? packLabel}`;
 
-  const image = product
-    ? (images[product.imageKey] as ImageAsset | undefined)
-    : undefined;
-
-  /**
-   * Plain `#range` anchor that upgrades to the shared smooth scroll
-   * (`lib/scroll`: Lenis when mounted, native otherwise) when JS is on.
-   */
-  const handleViewRange = useCallback(
-    (event: MouseEvent<HTMLAnchorElement>) => {
-      const target = document.getElementById("range");
-      if (!target) return; // let the browser handle the hash
-      event.preventDefault();
-      scrollToTarget(target, reduceMotion);
-      replaceHash("#range");
-    },
-    [reduceMotion],
-  );
+  const image =
+    match?.product.imageKey !== undefined
+      ? (images[match.product.imageKey] as ImageAsset | undefined)
+      : undefined;
 
   return (
     <section
@@ -500,40 +474,40 @@ export default function Finder({ finder, products, images }: FinderProps) {
             <div className="mt-10 space-y-8 lg:mt-14">
               <Question
                 index="1"
-                title="Sleep position"
-                options={finder.positions}
-                value={position}
-                onChange={choosePosition}
-                pillId="finder-pill-position"
+                title="Size"
+                options={finder.sizes}
+                value={size}
+                onChange={chooseSize}
+                pillId="finder-pill-size"
                 delay={STEP * 2}
                 reduceMotion={reduceMotion}
               />
               <Question
                 index="2"
-                title="Firmness"
-                options={finder.firmness}
-                value={firmness}
-                onChange={chooseFirmness}
-                pillId="finder-pill-firmness"
+                title="Pack"
+                options={finder.packs}
+                value={pack}
+                onChange={choosePack}
+                pillId="finder-pill-pack"
                 delay={STEP * 3}
                 reduceMotion={reduceMotion}
               />
             </div>
           </div>
 
-          {/* Recommendation. `scroll-mt` keeps it clear of the fixed bar when
-              brought into view; at `lg` it is sticky like the chips so the
-              question and its answer stay paired. No blur on the Reveal: the
-              card's photo is clip-wiping at the same time. */}
+          {/* Answer. `scroll-mt` keeps it clear of the fixed bar when brought
+              into view; at `lg` it is sticky like the chips so the question
+              and its answer stay paired. No blur on the Reveal: the card's
+              picture is clip-wiping at the same time. */}
           <div
             ref={cardRef}
             className="mt-12 scroll-mt-20 lg:sticky lg:top-28 lg:col-span-5 lg:col-start-8 lg:mt-0 lg:self-start"
           >
             <Reveal delay={0.12} blur={false}>
               <p className="sr-only" aria-live="polite">
-                {product
-                  ? `Recommended for ${context}: ${product.name}`
-                  : "No recommendation available"}
+                {match
+                  ? `Your pick for ${context}: ${match.product.name}, ${match.variant.size}, ${match.variant.pack}, ${formatInr(match.variant.priceInr)}.${answer?.note ? ` ${answer.note}` : ""}`
+                  : "See the pillow on Amazon.in."}
               </p>
 
               {/* Both the leaving and arriving card share one grid cell so they
@@ -544,23 +518,24 @@ export default function Finder({ finder, products, images }: FinderProps) {
                   column's Reveal, so nothing double-fades. */}
               <div className="grid">
                 <AnimatePresence>
-                  {product ? (
+                  {match ? (
                     <Recommendation
-                      key={product.slug}
-                      product={product}
+                      key={`${match.variant.asin}-${answer?.note ?? ""}`}
+                      product={match.product}
+                      variant={match.variant}
+                      note={answer?.note}
                       image={image}
                       context={context}
+                      priceNote={priceNote}
+                      promo={promo}
                       reduceMotion={reduceMotion}
-                      chosen={chosen}
-                      onViewRange={handleViewRange}
                     />
                   ) : (
                     <p
                       key="empty"
                       className="rule pt-5 text-[14px] leading-relaxed text-ink-soft [grid-area:1/1]"
                     >
-                      Our range is being photographed. Write to us and we will
-                      recommend a pillow by hand.
+                      See the pillow on Amazon.in.
                     </p>
                   )}
                 </AnimatePresence>

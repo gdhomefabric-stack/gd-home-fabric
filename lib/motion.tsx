@@ -418,7 +418,7 @@ export function Magnetic({ children, className, strength = 0.35 }: MagneticProps
 }
 
 // ---------------------------------------------------------------------------
-// Counter — count-up for stat values like "2,400+" / "100%" / "₹1,799"
+// Counter — count-up for stat values like "6+" / "500" (never for prices)
 //
 // Renders only the counting copy. Callers own the accessible text: wrap the
 // Counter in `aria-hidden` next to an sr-only copy of the final value (as
@@ -465,16 +465,21 @@ export function Counter({
         : String(Math.round(v))) +
     suffix;
 
-  // Server and first client render always show the zero state so the text
-  // hydrates cleanly; reduced motion then writes the final value in an effect.
-  const [display, setDisplay] = useState(() => format(0));
+  // Server and first client render show the final value, so the static HTML
+  // (no-JS readers, crawlers) never reads "0". Once mounted with motion
+  // allowed, the figure drops to zero until it counts up in view; reduced
+  // motion keeps the final value.
+  const [display, setDisplay] = useState(value);
 
   useEffect(() => {
     if (reduced) {
       setDisplay(value);
       return;
     }
-    if (!inView) return;
+    if (!inView) {
+      setDisplay(format(0));
+      return;
+    }
     const controls = animate(0, num, {
       duration,
       ease: EASE_OUT_EXPO,
