@@ -7,8 +7,12 @@
  * crawlers need.
  */
 
-/** Canonical origin, no trailing slash. Override per deployment with NEXT_PUBLIC_SITE_URL. */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://gdhomefabric.in").replace(/\/+$/, "");
+/**
+ * Canonical origin, no trailing slash. Override per deployment with
+ * NEXT_PUBLIC_SITE_URL. `||` rather than `??`: CI passes the variable as an
+ * empty string when it is not configured, and `new URL("")` throws.
+ */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://gdhomefabric.in").replace(/\/+$/, "");
 
 export const SITE_NAME = "GD Home Fabric";
 
