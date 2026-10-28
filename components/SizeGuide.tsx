@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { SizeRow } from "@/lib/types";
-import { EASE_SOFT, Reveal, SPRING_SOFT, TextReveal, cn } from "@/lib/motion";
+import { EASE_SOFT, Reveal, Rule, SPRING_SOFT, TextReveal, cn } from "@/lib/motion";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
 
 type SizeGuideProps = {
@@ -111,7 +111,9 @@ export default function SizeGuide({ rows }: SizeGuideProps) {
       <div className="mx-auto w-full max-w-[1440px]">
         {/* `data-index-avoid`: the fixed side index fades while these pass under it. */}
         <div data-index-avoid>
-          <Reveal className="rule flex items-baseline justify-between gap-4 pt-5">
+          {/* The hairline draws from the left on view (INTERACTIVE.md), the row rises under it. */}
+          <Rule />
+          <Reveal className="flex items-baseline justify-between gap-4 pt-5">
             <span className="label text-stone-deep">Size guide</span>
             <span className="label text-stone-deep">
               {count} {count === 1 ? "size" : "sizes"}
@@ -119,13 +121,16 @@ export default function SizeGuide({ rows }: SizeGuideProps) {
           </Reveal>
         </div>
 
-        <h2
-          id="sizes-heading"
-          data-index-avoid
-          className="font-display mt-6 text-[clamp(32px,4vw,56px)] text-ink"
-        >
-          <TextReveal text="Sizes, to scale" />
-        </h2>
+        {/* Oversized light display title with one italic accent (TextReveal `markup`). */}
+        <div data-index-avoid>
+          <TextReveal
+            as="h2"
+            id="sizes-heading"
+            text="Sizes, to *scale*"
+            markup
+            className="font-display mt-6 text-balance text-[clamp(48px,6.5vw,104px)] font-light text-ink"
+          />
+        </div>
 
         <div data-index-avoid>
           <Reveal delay={0.1} className="mt-5 max-w-[48ch]">

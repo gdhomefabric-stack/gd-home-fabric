@@ -1,5 +1,9 @@
+"use client";
+
+import { motion } from "motion/react";
 import type { Product } from "@/lib/types";
-import { cn } from "@/lib/motion";
+import { EASE_OUT_EXPO, cn } from "@/lib/motion";
+import { useReducedMotionSafe } from "@/lib/reduced-motion";
 
 /**
  * Drawn stand-in for a product photo. Stock photography is never shown on a
@@ -9,7 +13,21 @@ import { cn } from "@/lib/motion";
  * or, for the cover, a single dashed outline with "Cover only" across it.
  *
  * Fills its positioned parent (`absolute inset-0`), like a `next/image fill`.
+ *
+ * The picked outline (`highlight`, the finder's current answer) strokes itself
+ * on arrival: `pathLength` 0 → 1 over 1.2s (INTERACTIVE.md). It is keyed on
+ * the size, so a new answer redraws it; the finder also remounts the whole
+ * card per answer. Motion normalises the dash pattern through the `pathLength`
+ * attribute, which `vector-effect: non-scaling-stroke` would measure in screen
+ * pixels instead, so that rect keeps a user-unit stroke (`PICKED_STROKE`,
+ * ≈1px at the card's render size) and no vector effect. Reduced motion: drawn
+ * at once.
  */
+
+/** Stroke width of the picked outline in viewBox units (≈1px at 240 → ~500px). */
+const PICKED_STROKE = 0.5;
+const DRAW_HIDDEN = { pathLength: 0 } as const;
+const DRAW_SHOWN = { pathLength: 1 } as const;
 
 type ProductPlateProps = {
   product: Product;
@@ -36,6 +54,7 @@ function parse(size: string): Dims | null {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export default function ProductPlate({ product, highlight, className }: ProductPlateProps) {
+  const reduced = useReducedMotionSafe();
   const sizes: Dims[] = [];
   for (const v of product.variants) {
     if (sizes.some((d) => d.size === v.size)) continue;
@@ -78,6 +97,24 @@ export default function ProductPlate({ product, highlight, className }: ProductP
           const h = round2(d.h * scale);
           const picked = highlight === d.size;
           const dimmed = highlight !== undefined && !picked;
+          if (picked) {
+            return (
+              <motion.rect
+                key={`${d.size}-picked`}
+                x={round2(left)}
+                y={round2(bottom - h)}
+                width={w}
+                height={h}
+                rx={5}
+                strokeWidth={PICKED_STROKE}
+                strokeDasharray={coverOnly ? "4 3" : undefined}
+                className="fill-sand stroke-ink transition-[fill] duration-500"
+                initial={DRAW_HIDDEN}
+                animate={DRAW_SHOWN}
+                transition={reduced ? { duration: 0 } : { duration: 1.2, ease: EASE_OUT_EXPO }}
+              />
+            );
+          }
           return (
             <rect
               key={d.size}

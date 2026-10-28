@@ -29,6 +29,14 @@
  *   the same device Collections uses over its index rows.
  * - Reduced motion: every primitive renders its final state at once and the
  *   rule is drawn in full. Nothing is ever left invisible.
+ *
+ * Phase 4 (INTERACTIVE.md): the section paints no background of its own — the
+ * ScrollTint behind <main>'s content turns to ink (#1c2230) as this section
+ * crosses the viewport and sets `data-theme="dark"` on itself while it does,
+ * so every text colour here has a `[[data-theme=dark]_&]:text-paper` twin and
+ * the hairlines a `paper/20` one, eased over 0.7s (`DARK` / `DARK_RULE`).
+ * The title is the oversized light display with one italic accent (`*…*` in
+ * the copy, TextReveal `markup`) under the outlined "06" (`SectionIndex`).
  */
 
 import Image from "next/image";
@@ -36,7 +44,8 @@ import { useRef } from "react";
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
 import type { ImageAsset, SiteContent } from "@/lib/types";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
-import { Counter, ImageReveal, Reveal, SPRING_SOFT, TextReveal, cn } from "@/lib/motion";
+import { Counter, ImageReveal, Reveal, Rule, SPRING_SOFT, TextReveal, cn } from "@/lib/motion";
+import SectionIndex from "@/components/SectionIndex";
 
 type CraftProps = {
   craft: SiteContent["craft"];
@@ -56,6 +65,17 @@ const MAX_STEP_DELAY = 0.4;
 const STAT_STAGGER = 0.07;
 /** MOTION.md: Craft images drift 12% against the scroll. */
 const PHOTO_PARALLAX = 0.12;
+/** The section's place in the page's running index (INTERACTIVE.md). */
+const SECTION_INDEX = "06";
+
+/**
+ * Dark-theme twins. The ScrollTint ancestor carries `data-theme="dark"` while
+ * the ink background is under this section; text goes paper, hairlines a
+ * translucent paper, both eased so the flip never snaps.
+ */
+const DARK = "transition-colors duration-700 ease-in-out-soft [[data-theme=dark]_&]:text-paper";
+const DARK_RULE = "[[data-theme=dark]_&]:bg-paper/20";
+const DARK_BORDER = "transition-colors duration-700 ease-in-out-soft [[data-theme=dark]_&]:border-paper/20";
 
 /**
  * `next/image` sizes for the photo. From `lg` it spans grid columns 7–12 plus
@@ -106,12 +126,12 @@ function Stat({ value, label, delay }: StatProps) {
 
   return (
     <Reveal delay={delay} className="min-w-0">
-      <p className="font-display text-[clamp(36px,3.4vw,60px)] leading-none text-ink tabular-nums">
+      <p className={cn("font-display text-[clamp(36px,3.4vw,60px)] leading-none text-ink tabular-nums", DARK)}>
         {/* AT reads the author's exact string; the animating copy is decorative. */}
         <span className="sr-only">{value}</span>
         <span aria-hidden="true">{countable ? <Counter value={value} /> : value}</span>
       </p>
-      <p className="label mt-3 text-ink-soft">{label}</p>
+      <p className={cn("label mt-3 text-ink-soft", DARK)}>{label}</p>
     </Reveal>
   );
 }
@@ -151,7 +171,9 @@ export default function Craft({ craft, images }: CraftProps) {
       // `overflow-x-clip` (not hidden) gates the right-edge bleed and the
       // skewed photo frame without creating a scroll container, so the bleed
       // can never become horizontal page scroll at any width.
-      className="relative w-full scroll-mt-16 overflow-x-clip bg-paper pt-[clamp(96px,12vw,200px)] pb-2 md:scroll-mt-20"
+      // No `bg-paper`: the ScrollTint behind <main>'s content paints the ink
+      // band through this section (see the header).
+      className="relative w-full scroll-mt-16 overflow-x-clip bg-transparent pt-[clamp(96px,12vw,200px)] pb-2 md:scroll-mt-20"
     >
       {/* The grid keeps its default `stretch` alignment on purpose: the text
           column's grid item grows to the photo's height, which is the room
@@ -170,16 +192,22 @@ export default function Craft({ craft, images }: CraftProps) {
         >
           <div className="lg:sticky lg:top-28">
             {/* Eyebrow row under a hairline that fills with section progress. */}
-            <div className="relative rule pt-4">
+            <div className={cn("relative rule pt-4", DARK_BORDER)}>
               <motion.span
                 aria-hidden
-                className="absolute -top-px left-0 h-px w-full origin-left bg-ink"
+                className={cn(
+                  "absolute -top-px left-0 h-px w-full origin-left bg-ink",
+                  "transition-colors duration-700 ease-in-out-soft [[data-theme=dark]_&]:bg-paper",
+                )}
                 style={{ scaleX: reduce ? 1 : progress }}
               />
               <Reveal>
-                <p className="label text-ink">{craft.eyebrow}</p>
+                <p className={cn("label text-ink", DARK)}>{craft.eyebrow}</p>
               </Reveal>
             </div>
+
+            {/* Oversized outlined numeral behind/above the title (INTERACTIVE.md). */}
+            <SectionIndex index={SECTION_INDEX} className={cn("mt-6 text-ink lg:mt-8", DARK)} />
 
             {/* Word-by-word title: the shared TextReveal, like every other
                 section title (same 0.045s/1.1s/EASE_OUT_EXPO timing,
@@ -189,22 +217,35 @@ export default function Craft({ craft, images }: CraftProps) {
               as="h2"
               id="craft-heading"
               text={craft.title}
+              markup
               delay={STEP}
-              className="font-display mt-8 text-balance text-[clamp(32px,4vw,56px)] text-ink lg:mt-12"
+              className={cn(
+                "font-display mt-4 text-balance text-[clamp(48px,6.5vw,104px)] font-light text-ink lg:mt-6",
+                DARK,
+              )}
             />
 
             {/* Numbered paragraphs, `(1).` in the label style like the
                 reference, separated by hairlines. */}
             {paragraphCount > 0 ? (
-              <div className="mt-8 divide-y divide-hairline lg:mt-10">
+              <div
+                className={cn(
+                  "mt-8 divide-y divide-hairline lg:mt-10",
+                  "transition-colors duration-700 ease-in-out-soft [[data-theme=dark]_&]:divide-paper/20",
+                )}
+              >
                 {craft.paragraphs.map((paragraph, i) => (
                   <Reveal
                     key={`${i}-${paragraph.slice(0, 24)}`}
                     delay={stepDelay(2 + i)}
                     className="grid grid-cols-[2.75rem_1fr] py-5 first:pt-0 last:pb-0"
                   >
-                    <span className="label pt-[5px] text-stone-deep tabular-nums">({i + 1}).</span>
-                    <p className="max-w-[44ch] text-[15px] leading-[1.7] text-ink-soft">{paragraph}</p>
+                    <span className={cn("label pt-[5px] text-stone-deep tabular-nums", DARK)}>
+                      ({i + 1}).
+                    </span>
+                    <p className={cn("max-w-[44ch] text-[15px] leading-[1.7] text-ink-soft", DARK)}>
+                      {paragraph}
+                    </p>
                   </Reveal>
                 ))}
               </div>
@@ -212,15 +253,18 @@ export default function Craft({ craft, images }: CraftProps) {
 
             {/* Stats row with count-up, under the text. */}
             {craft.stats.length > 0 ? (
-              <div className="rule mt-10 grid grid-cols-3 gap-x-4 pt-6 lg:mt-12">
-                {craft.stats.map((stat, i) => (
-                  <Stat
-                    key={`${stat.label}-${i}`}
-                    value={stat.value}
-                    label={stat.label}
-                    delay={stepDelay(2 + paragraphCount) + i * STAT_STAGGER}
-                  />
-                ))}
+              <div className="mt-10 lg:mt-12">
+                <Rule className={DARK_RULE} />
+                <div className="grid grid-cols-3 gap-x-4 pt-6">
+                  {craft.stats.map((stat, i) => (
+                    <Stat
+                      key={`${stat.label}-${i}`}
+                      value={stat.value}
+                      label={stat.label}
+                      delay={stepDelay(2 + paragraphCount) + i * STAT_STAGGER}
+                    />
+                  ))}
+                </div>
               </div>
             ) : null}
           </div>

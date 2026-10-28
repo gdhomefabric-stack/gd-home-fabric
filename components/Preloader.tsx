@@ -226,8 +226,8 @@ export default function Preloader({ wordmark, line }: PreloaderProps) {
                   trigger="immediate"
                   stagger={timing.stagger}
                   duration={timing.letter}
-                  // `whitespace-pre` is inherited by the per-letter inline-blocks so the
-                  // space units keep their width instead of collapsing.
+                  // `whitespace-pre`: the wordmark never wraps at the spaces between its
+                  // per-word letter groups, whatever the width.
                   className="font-display block max-w-full whitespace-pre text-[clamp(28px,4vw,44px)] leading-none text-white"
                 />
 

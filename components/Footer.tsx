@@ -112,9 +112,14 @@ const NONE_SHOWN: Shown = { strip: false, head: false, links: false, foot: false
 
 /** Card stagger from MOTION.md. */
 const ITEM_STAGGER = 0.07;
-/** Giant wordmark: rises `y 30% → 0` and fades `0 → 0.06` once uncovered (MOTION.md). */
-const MARK_HIDDEN = { y: "30%", opacity: 0 } as const;
-const MARK_SHOWN = { y: "0%", opacity: 0.06 } as const;
+/**
+ * Giant wordmark: fades `0 → 0.06` once uncovered (MOTION.md) while its
+ * letters rise one by one inside (INTERACTIVE.md: `TextReveal byLetter`, 0.02s
+ * stagger, remounted with `trigger="immediate"` when the curtain lifts).
+ */
+const MARK_HIDDEN = { opacity: 0 } as const;
+const MARK_SHOWN = { opacity: 0.06 } as const;
+const MARK_LETTER_STAGGER = 0.02;
 /** Sub-pixel slack when checking that the page reserves the footer's height. */
 const ROOM_SLACK = 2;
 /** Breathing room kept around an element uncovered for keyboard focus. */
@@ -555,13 +560,16 @@ export default function Footer({ footer, image, wordmark }: FooterProps) {
               <span className="label hidden text-stone-deep sm:inline">{channels}</span>
             </Reveal>
 
+            {/* The enquiry line's words fade in (TextReveal `markup`: `*word*` in
+                the copy is the italic accent). */}
             <TextReveal
               as="h2"
               id="enquire-heading"
               text={footer.enquiryLine}
+              markup
               trigger={trigger("head")}
               delay={0.1}
-              className="font-display mt-8 max-w-[16ch] text-balance text-[clamp(40px,6vw,96px)] text-ink lg:mt-12"
+              className="font-display mt-8 max-w-[16ch] text-balance text-[clamp(40px,6vw,96px)] font-light text-ink lg:mt-12"
             />
           </div>
 
@@ -652,8 +660,10 @@ export default function Footer({ footer, image, wordmark }: FooterProps) {
           fits the 14-glyph wordmark inside the gutters at every width (the
           contract's 18vw can never fit it on one line; 13.4vw fitted too but
           pushed the enquiry rule under the nav at 1440×900), and the wrapper
-          clips the rise. Rises y 30% → 0 and fades 0 → 0.06 once the curtain
-          has lifted off it. */}
+          clips the rise. Fades 0 → 0.06 once the curtain has lifted off it
+          while the letters rise individually (TextReveal byLetter, each in its
+          own overflow mask; the block is remounted on that signal so the
+          letters play then, not while still under <main>). */}
       <div
         ref={gateRef.mark}
         data-curtain="mark"
@@ -665,14 +675,22 @@ export default function Footer({ footer, image, wordmark }: FooterProps) {
             shown state through the instant transition. Flipping `initial` to
             `false` once the preference is known would make motion skip the
             first pass and leave the wordmark at opacity 0. */}
-        <motion.p
-          className="font-display -mb-[0.1em] whitespace-nowrap text-[clamp(44px,11.5vw,196px)] leading-none text-ink select-none will-change-transform"
+        <motion.div
+          className="font-display -mb-[0.1em] whitespace-nowrap text-[clamp(44px,11.5vw,196px)] leading-none text-ink select-none"
           initial={MARK_HIDDEN}
           animate={markShow ? MARK_SHOWN : MARK_HIDDEN}
           transition={reduce ? { duration: 0 } : { duration: 1.3, ease: EASE_OUT_EXPO }}
         >
-          {wordmark}
-        </motion.p>
+          <TextReveal
+            key={markShow ? "mark-live" : "mark-idle"}
+            as="p"
+            text={wordmark}
+            byLetter
+            stagger={MARK_LETTER_STAGGER}
+            trigger={markShow ? "immediate" : "view"}
+            className="block"
+          />
+        </motion.div>
       </div>
     </motion.footer>
   );

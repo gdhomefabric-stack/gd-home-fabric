@@ -3,7 +3,8 @@
 // Same Playwright setup as tools/shot.mjs (desktop 1440x900, headless shell
 // from ~/confession-onboarding/.tools). Waits for the preloader (data-ready),
 // then drives the interactive states a scroll-only capture cannot reach —
-// menu overlay, product hover, finder chips (Queen + Pack of 1), care accordion, curtain footer —
+// menu overlay, product hover, finder chips (Queen + Pack of 1), care accordion, curtain footer,
+// the lightbox (open from a collection photo, close on Escape) and the materials drag —
 // and writes one PNG per state plus interact.json (console errors, Lenis and
 // custom-cursor presence).
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -190,6 +191,80 @@ await page.waitForTimeout(200);
   }));
   steps.push({ step: "i-05-footer", ...pos });
   await shot("i-05-footer");
+}
+
+// 6. Lightbox: the first collection photo opens the viewer; Escape closes it.
+{
+  await scrollToSelector("#collection", 96);
+  await page.waitForTimeout(600);
+  const photo = page.locator('#collection button[data-cursor="open"]').first();
+  // Bring the photo itself into the viewport (the first one sits below the intro).
+  await page.evaluate(() => {
+    const el = document.querySelector('#collection button[data-cursor="open"]');
+    if (!el) return;
+    const y = Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - 120));
+    window.scrollTo({ top: y, behavior: "auto" });
+    // @ts-ignore
+    window.__lenis?.scrollTo?.(y, { immediate: true });
+  });
+  await page.waitForTimeout(1200);
+  const clicked = await clickCentre(photo, "first collection photo button");
+  await page.waitForTimeout(1200);
+  const lightboxOpened = await page.evaluate(() => {
+    const dialog = document.querySelector("[role=dialog]");
+    if (!(dialog instanceof HTMLElement)) return false;
+    const r = dialog.getBoundingClientRect();
+    const style = getComputedStyle(dialog);
+    return r.width > 0 && r.height > 0 && style.visibility !== "hidden" && Number(style.opacity) > 0.5;
+  });
+  const dialogLabel = await page.evaluate(
+    () => document.querySelector("[role=dialog]")?.getAttribute("aria-label") ?? null,
+  );
+  await shot("i-06-lightbox-open");
+  await page.keyboard.press("Escape");
+  const escapedAt = Date.now();
+  const lightboxClosed = await page
+    .waitForFunction(() => !document.querySelector("[role=dialog]"), null, { timeout: 4000 })
+    .then(() => true, () => false);
+  steps.push({
+    step: "i-06-lightbox",
+    clicked,
+    lightboxOpened,
+    dialogLabel,
+    lightboxClosed,
+    closeMs: Date.now() - escapedAt,
+  });
+}
+
+// 7. Materials: drag the gallery track 300px to the left with the mouse.
+{
+  await scrollToSelector("#materials", 96);
+  await page.waitForTimeout(1100);
+  const track = page.locator('#materials [data-cursor="drag"]').first();
+  const box = await track.boundingBox();
+  let dragged = false;
+  let trackX = null;
+  if (box) {
+    const x0 = box.x + box.width / 2;
+    const y0 = box.y + box.height / 2;
+    await page.mouse.move(x0, y0, { steps: 4 });
+    await page.mouse.down();
+    await page.mouse.move(x0 - 300, y0, { steps: 20 });
+    await page.mouse.up();
+    dragged = true;
+    await page.waitForTimeout(1000);
+    trackX = await page.evaluate(() => {
+      const el = document.querySelector('#materials [data-cursor="drag"] > div');
+      if (!(el instanceof HTMLElement)) return null;
+      const m = new DOMMatrixReadOnly(getComputedStyle(el).transform);
+      return Math.round(m.m41);
+    });
+  } else {
+    logs.push("note: materials drag track has no bounding box");
+  }
+  steps.push({ step: "i-07-materials-drag", dragged, trackX });
+  await shot("i-07-materials-drag");
+  await page.mouse.move(width - 40, height / 2, { steps: 4 });
 }
 
 const probe = await page.evaluate(() => ({

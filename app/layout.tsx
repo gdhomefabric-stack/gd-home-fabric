@@ -71,15 +71,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         {/*
-          Fonts are self-hosted from /public/fonts (Instrument Serif, Hanken
-          Grotesk variable; OFL) via a plain stylesheet rather than next/font so
-          the build never needs network access. The two latin faces that paint
-          above the fold are preloaded; the latin-ext subsets (₹ sign, accents)
-          load on demand through unicode-range.
+          Fonts are self-hosted from /public/fonts (Cormorant Garamond 300/400 +
+          italic, Hanken Grotesk variable; OFL) via a plain stylesheet rather
+          than next/font so the build never needs network access. The latin
+          faces that paint above the fold are preloaded (the Cormorant 300 and
+          400 weights share one file, and the hero's italic accent needs the
+          italic); the latin-ext subsets (₹ sign, accents) load on demand
+          through unicode-range.
         */}
         <link
           rel="preload"
-          href="/fonts/instrument-serif-400-normal-latin.woff2"
+          href="/fonts/cormorant-garamond-400-normal-latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/cormorant-garamond-400-italic-latin.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"

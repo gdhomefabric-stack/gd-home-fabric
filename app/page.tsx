@@ -2,6 +2,7 @@ import { checkContent, content, isPlaceholder } from "@/lib/content";
 import { images, img, type ImageKey } from "@/lib/images";
 import type { ImageAsset, SiteContent } from "@/lib/types";
 import { ScrollVelocityProvider } from "@/lib/motion";
+import { LightboxProvider } from "@/lib/lightbox";
 import { OG_IMAGE, SITE_DESCRIPTION, SITE_LEGAL_NAME, SITE_NAME, SITE_URL } from "@/lib/site";
 
 import SmoothScroll from "@/components/SmoothScroll";
@@ -14,6 +15,8 @@ import Hero from "@/components/Hero";
 import Manifesto from "@/components/Manifesto";
 import Collections from "@/components/Collections";
 import ProductGrid from "@/components/ProductGrid";
+import Ticker from "@/components/Ticker";
+import ScrollTint from "@/components/ScrollTint";
 import PhotoBand from "@/components/PhotoBand";
 import Materials from "@/components/Materials";
 import Craft from "@/components/Craft";
@@ -27,8 +30,8 @@ import Footer from "@/components/Footer";
  * content and photo manifests and hands them to the client components as
  * plain props, in the order fixed by AESTHETIC.md (phase 3):
  *
- *   Hero › Manifesto › Collections › ProductGrid › PhotoBand › Materials ›
- *   Craft › PhotoBand › SizeGuide › Finder › Care; Footer.
+ *   Hero › Manifesto › Collections › ProductGrid › Ticker › PhotoBand ›
+ *   Materials › Craft › PhotoBand › SizeGuide › Finder › Care; Footer.
  *
  * Each client component gets only the manifest entries it renders (`pick`):
  * every client boundary serialises its props into the RSC payload, so passing
@@ -36,7 +39,12 @@ import Footer from "@/components/Footer";
  *
  * The global motion pieces (scroll hairline, custom cursor) are mounted once
  * here, ahead of the preloader, inside the one `ScrollVelocityProvider` that
- * every ImageReveal and the Materials marquee read their skew from. <main> is
+ * every ImageReveal and the Materials marquee read their skew from, and the
+ * one `LightboxProvider` every photo button opens into (INTERACTIVE.md §2).
+ * <main>'s content sits in `ScrollTint`, whose background glides paper →
+ * #efe9df across the Range and the ticker/materials → ink over About → paper
+ * (INTERACTIVE.md §3); the Range, ticker, Materials and About paint no
+ * background of their own so it shows through. <main> is
  * the curtain over the fixed footer: it sits above it (`relative z-10
  * bg-paper`) and reserves the footer's measured height below itself
  * (`--footer-h`, published by Footer on <html>), so the footer is uncovered as
@@ -176,6 +184,18 @@ function structuredData() {
   return { "@context": "https://schema.org", "@graph": [organization, website, itemList] };
 }
 
+/**
+ * The ticker line between the Range and the first band (INTERACTIVE.md §3):
+ * every phrase is a FACTS.md fact, nothing more.
+ */
+const TICKER_PHRASES = [
+  "Goose feather",
+  "500 thread count cotton",
+  "Standard, Queen, King",
+  "Vacuum packed",
+  "Sold on Amazon.in",
+];
+
 /** JSON-LD must not be able to close its own <script>: escape every "<". */
 const jsonLd = JSON.stringify(structuredData()).replace(/</g, "\\u003c");
 
@@ -193,36 +213,38 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <SmoothScroll>
         <ScrollVelocityProvider>
-          <ScrollProgress />
-          <Cursor />
-          <Preloader wordmark={brand.wordmark} line={brand.preloaderLine} />
-          <Nav wordmark={brand.wordmark} menu={nav.menu} cta={nav.cta} />
-          <SideIndex items={nav.index} />
+          <LightboxProvider>
+            <ScrollProgress />
+            <Cursor />
+            <Preloader wordmark={brand.wordmark} line={brand.preloaderLine} />
+            <Nav wordmark={brand.wordmark} menu={nav.menu} cta={nav.cta} />
+            <SideIndex items={nav.index} />
 
-          <main id="top" className="relative z-10 bg-paper mb-[var(--footer-h,0px)]">
-            <Hero image={img("hero")} headline={brand.heroHeadline} sub={brand.heroSub} />
-            <Manifesto image={img("manifesto")} eyebrow={manifesto.eyebrow} text={manifesto.text} />
-            <Collections intro={brand.introLine} collections={collections} images={collectionImages} />
-            <ProductGrid products={products} images={productImages} priceNote={priceNote} />
-            <PhotoBand image={asset(bandOne.imageKey, "band-01")} line={bandOne.line} height="85svh" />
-            <Materials materials={materials} images={materialImages} />
-            {/* Interim: `collection-01-b` stands in for `about-01` (a washed-out
-                beige sheet) until a crisper made-bed detail is sourced. */}
-            <Craft craft={content.craft} images={[asset("collection-01-b", "about-01")]} />
-            <PhotoBand image={asset(bandTwo.imageKey, "band-02")} line={bandTwo.line} height="85svh" />
-            <SizeGuide rows={content.sizeGuide} />
-            <Finder
-              finder={content.finder}
-              products={products}
-              images={finderImages}
-              priceNote={priceNote}
-            />
-            <Care items={content.care} />
-          </main>
+            <main id="top" className="relative z-10 bg-paper mb-[var(--footer-h,0px)]">
+              <ScrollTint>
+                <Hero image={img("hero")} headline={brand.heroHeadline} sub={brand.heroSub} />
+                <Manifesto image={img("manifesto")} eyebrow={manifesto.eyebrow} text={manifesto.text} />
+                <Collections intro={brand.introLine} collections={collections} images={collectionImages} />
+                <ProductGrid products={products} images={productImages} priceNote={priceNote} />
+                {/* INTERACTIVE.md §3: the word ticker, FACTS.md phrases only. */}
+                <Ticker phrases={TICKER_PHRASES} />
+                <PhotoBand image={asset(bandOne.imageKey, "band-01")} line={bandOne.line} height="85svh" />
+                <Materials materials={materials} images={materialImages} />
+                <Craft craft={content.craft} images={[img("about-01")]} />
+                <PhotoBand image={asset(bandTwo.imageKey, "band-02")} line={bandTwo.line} height="85svh" />
+                <SizeGuide rows={content.sizeGuide} />
+                <Finder
+                  finder={content.finder}
+                  products={products}
+                  images={finderImages}
+                  priceNote={priceNote}
+                />
+                <Care items={content.care} />
+              </ScrollTint>
+            </main>
 
-          {/* Interim: `footer-01` (sunlit made bed) stands in for `footer-02`,
-              whose centre is a wall socket, until a serene bedroom is sourced. */}
-          <Footer footer={footer} image={img("footer-01")} wordmark={brand.wordmark} />
+            <Footer footer={footer} image={img("footer-02")} wordmark={brand.wordmark} />
+          </LightboxProvider>
         </ScrollVelocityProvider>
       </SmoothScroll>
     </>

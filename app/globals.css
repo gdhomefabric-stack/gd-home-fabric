@@ -14,7 +14,7 @@
   --color-ink-soft: #4b5160;     /* body text */
   --color-hairline: rgba(28, 34, 48, 0.14);
 
-  --font-display: "Instrument Serif", "Times New Roman", serif;
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
   --font-body: "Hanken Grotesk", system-ui, sans-serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -61,12 +61,25 @@ body {
   color: var(--color-ink);
 }
 
-/* Display type: serif, tight leading, slight negative tracking */
+/* Display type: light serif, tight leading, negative tracking. The italic
+   accent (`*word*` in copy → <em> via TextReveal markup) sits a weight up. */
 .font-display {
   font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+}
+.font-display em {
+  font-style: italic;
   font-weight: 400;
-  letter-spacing: -0.01em;
-  line-height: 1.05;
+}
+
+/* Oversized outlined numerals (section indices): stroke only, no fill. The
+   fill goes transparent while `color` stays inherited, so the stroke takes the
+   current text colour (ink on paper, paper on the dark About band). */
+.text-outline {
+  -webkit-text-stroke: 1px currentColor;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Small caps labels used for nav, section indices, eyebrow text */
@@ -74,7 +87,7 @@ body {
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: 400;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   line-height: 1;
 }
@@ -105,6 +118,15 @@ body {
 /* Hairline rules */
 .rule {
   border-top: 1px solid var(--color-hairline);
+}
+
+/* A hairline that draws from the left: scale it on the x axis (the `Rule`
+   primitive in lib/motion.tsx animates `scaleX` 0 → 1 on view). */
+.rule-draw {
+  height: 1px;
+  width: 100%;
+  background: var(--color-hairline);
+  transform-origin: left center;
 }
 
 /* Underline-on-hover link (draws from left) */

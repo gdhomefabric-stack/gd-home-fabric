@@ -8,7 +8,7 @@ import type { ImageAsset, Product, SiteContent, Variant } from "@/lib/types";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
 import { scrollToTarget } from "@/lib/scroll";
 import { PROMO_TEXT, formatInr, promoApplies, usePromo } from "@/lib/offer";
-import { EASE_SOFT, ImageReveal, Reveal, SPRING_SNAPPY, TextReveal, cn } from "@/lib/motion";
+import { EASE_SOFT, ImageReveal, Reveal, Rule, SPRING_SNAPPY, TextReveal, cn } from "@/lib/motion";
 import ProductPlate from "@/components/ProductPlate";
 
 declare global {
@@ -185,47 +185,51 @@ function Question<T extends string>({
     : { type: "spring", ...SPRING_SNAPPY };
 
   return (
-    <Reveal delay={delay} className="rule pt-6">
-      <h3 id={headingId} className="label text-stone-deep">
-        <span className="text-ink">({index}).</span> {title}
-      </h3>
+    <div>
+      {/* The hairline draws from the left on view (INTERACTIVE.md); the row rises under it. */}
+      <Rule />
+      <Reveal delay={delay} className="pt-6">
+        <h3 id={headingId} className="label text-stone-deep">
+          <span className="text-ink">({index}).</span> {title}
+        </h3>
 
-      <div
-        role="group"
-        aria-labelledby={headingId}
-        className="mt-5 flex flex-wrap gap-2"
-      >
-        {options.map((option) => (
-          <Chip
-            key={option.id}
-            label={option.label}
-            pressed={option.id === value}
-            onClick={() => onChange(option.id)}
-            pillId={pillId}
-            pillTransition={pillTransition}
-            reduceMotion={reduceMotion}
-          />
-        ))}
-      </div>
+        <div
+          role="group"
+          aria-labelledby={headingId}
+          className="mt-5 flex flex-wrap gap-2"
+        >
+          {options.map((option) => (
+            <Chip
+              key={option.id}
+              label={option.label}
+              pressed={option.id === value}
+              onClick={() => onChange(option.id)}
+              pillId={pillId}
+              pillTransition={pillTransition}
+              reduceMotion={reduceMotion}
+            />
+          ))}
+        </div>
 
-      {/* Hint for the selected option; reserved height (two lines on phones) so the row never jumps. */}
-      <div className="mt-4 min-h-[46px] sm:min-h-[24px]">
-        <AnimatePresence mode="wait" initial={false}>
-          {selected ? (
-            <motion.p
-              key={selected.id}
-              initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: reduceMotion ? 0 : 0.35, ease: EASE_SOFT }}
-              className="text-[14px] leading-relaxed text-ink-soft"
-            >
-              {selected.hint}
-            </motion.p>
-          ) : null}
-        </AnimatePresence>
-      </div>
-    </Reveal>
+        {/* Hint for the selected option; reserved height (two lines on phones) so the row never jumps. */}
+        <div className="mt-4 min-h-[46px] sm:min-h-[24px]">
+          <AnimatePresence mode="wait" initial={false}>
+            {selected ? (
+              <motion.p
+                key={selected.id}
+                initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: reduceMotion ? 0 : 0.35, ease: EASE_SOFT }}
+                className="text-[14px] leading-relaxed text-ink-soft"
+              >
+                {selected.hint}
+              </motion.p>
+            ) : null}
+          </AnimatePresence>
+        </div>
+      </Reveal>
+    </div>
   );
 }
 
@@ -318,8 +322,12 @@ function Recommendation({
         <p className="label mt-3 self-start border border-ink px-2 py-[5px] text-ink">{note}</p>
       ) : null}
 
+      {/* Each answer is a fresh article, so its hairlines draw again with it. */}
       {benefits.length > 0 ? (
-        <ul role="list" className="rule mt-5 space-y-2 pt-4">
+        <Rule className="mt-5" />
+      ) : null}
+      {benefits.length > 0 ? (
+        <ul role="list" className="space-y-2 pt-4">
           {benefits.map((benefit) => (
             <li
               key={benefit}
@@ -332,7 +340,8 @@ function Recommendation({
         </ul>
       ) : null}
 
-      <div className="rule mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 pt-4">
+      <Rule className="mt-5" />
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 pt-4">
         {/* A static price: never a count-up, which would read "₹0" before it runs. */}
         <p className="text-[18px] tabular-nums text-ink">{formatInr(v.priceInr)}</p>
         {/* `tap` + `py-1`: 11px label → 51px effective target. */}
@@ -444,7 +453,8 @@ export default function Finder({ finder, products, images, priceNote }: FinderPr
       <div className="mx-auto w-full max-w-[1440px]">
         {/* `data-index-avoid`: the fixed side index fades while these pass under it. */}
         <div data-index-avoid>
-          <Reveal className="rule flex items-baseline justify-between gap-4 pt-5">
+          <Rule />
+          <Reveal className="flex items-baseline justify-between gap-4 pt-5">
             <span className="label text-stone-deep">Finder</span>
             <span className="label text-stone-deep">Two questions</span>
           </Reveal>
@@ -453,11 +463,13 @@ export default function Finder({ finder, products, images, priceNote }: FinderPr
         <div className="mt-6 lg:grid lg:grid-cols-12 lg:gap-x-8">
           {/* Questions */}
           <div data-index-avoid className="lg:sticky lg:top-28 lg:col-span-6 lg:self-start">
+            {/* Oversized light display title; `*word*` in the copy is the italic accent. */}
             <TextReveal
               as="h2"
               id="finder-heading"
               text={finder.title}
-              className="font-display text-[clamp(32px,4vw,56px)] text-ink"
+              markup
+              className="font-display text-balance text-[clamp(48px,6.5vw,104px)] font-light text-ink"
             />
 
             <Reveal delay={STEP} className="mt-5 max-w-[46ch]">

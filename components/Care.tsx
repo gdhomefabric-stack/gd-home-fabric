@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import type { Faq } from "@/lib/types";
-import { EASE_OUT_EXPO, EASE_SOFT, Reveal, TextReveal } from "@/lib/motion";
+import { EASE_OUT_EXPO, EASE_SOFT, Reveal, Rule, TextReveal } from "@/lib/motion";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
 
 type CareProps = {
@@ -75,8 +75,10 @@ function CareItem({ item, index, open, onToggle, reduceMotion, delay }: CareItem
 
   return (
     <li className="min-w-0">
-      {/* The hairline rides on the Reveal so the whole row rises as one. */}
-      <Reveal delay={delay} y={ROW_Y} className="rule">
+      {/* The hairline draws from the left on view (INTERACTIVE.md); the row
+          rises under it with the same stagger. */}
+      <Rule />
+      <Reveal delay={delay} y={ROW_Y}>
         <h3 className="m-0">
           {/* `data-cursor="dot"`: the custom cursor keeps only its dot over
               the row, so the ring never paints through the `+`. */}
@@ -102,7 +104,7 @@ function CareItem({ item, index, open, onToggle, reduceMotion, delay }: CareItem
             <motion.span
               variants={questionVariants}
               transition={hoverTransition}
-              className="font-display min-w-0 flex-1 break-words text-[clamp(20px,2vw,26px)] will-change-transform"
+              className="font-display min-w-0 flex-1 break-words text-[clamp(24px,2.4vw,34px)] font-light will-change-transform"
             >
               {item.q}
             </motion.span>
@@ -178,7 +180,8 @@ export default function Care({ items }: CareProps) {
       <div className="mx-auto w-full max-w-[1440px]">
         {/* `data-index-avoid`: the fixed side index fades while these pass under it. */}
         <div data-index-avoid>
-          <Reveal className="rule flex items-baseline justify-between gap-4 pt-5">
+          <Rule />
+          <Reveal className="flex items-baseline justify-between gap-4 pt-5">
             <span className="label text-stone-deep">Care</span>
             <span className="label text-stone-deep">
               {count} {count === 1 ? "question" : "questions"}
@@ -190,11 +193,13 @@ export default function Care({ items }: CareProps) {
           {/* The sticky box stays a plain div so the Reveal transforms inside
               never interfere with `position: sticky`. */}
           <div data-index-avoid className="lg:col-span-4 lg:self-start lg:sticky lg:top-28">
+            {/* Oversized light display title with one italic accent (TextReveal `markup`). */}
             <TextReveal
               as="h2"
               id="care-heading"
-              text="Care & questions"
-              className="font-display text-[clamp(32px,4vw,56px)] text-ink"
+              text="Care & *questions*"
+              markup
+              className="font-display text-balance text-[clamp(48px,6.5vw,104px)] font-light text-ink"
             />
             <Reveal delay={0.1} className="mt-5">
               <p className="max-w-[34ch] text-[15px] leading-[1.7] text-ink-soft">

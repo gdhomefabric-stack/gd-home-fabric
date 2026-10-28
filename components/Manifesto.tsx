@@ -9,7 +9,8 @@
  * the band is dark from the first paint, before the lazy photo arrives.
  *
  * Words. The paragraph is split on whitespace into inline spans, with the real
- * spaces between them, so it still reads, copies and finds as one sentence.
+ * spaces between them, so it still reads, copies and finds as one sentence;
+ * a `*word*` in the copy renders in <em> (the one italic accent).
  * Each word's opacity goes 0.25 → 1 as the section's scroll progress
  * (`useScroll`, "start 80%" → "end 60%") passes its slot; one `useTransform`
  * per word, no spring, so the front tracks the scroll exactly. The slots
@@ -53,20 +54,36 @@ const FEATHER = 2.5;
 
 type WordProps = {
   word: string;
+  /** the word sits inside a `*…*` run: rendered in <em> (the italic accent) */
+  em: boolean;
   progress: MotionValue<number>;
   start: number;
   end: number;
   reduced: boolean;
 };
 
-function Word({ word, progress, start, end, reduced }: WordProps) {
+function Word({ word, em, progress, start, end, reduced }: WordProps) {
   // `useTransform` clamps outside [start, end], so a word is never dimmer than
   // DIM nor brighter than 1 however far the band scrolls.
   const raw = useTransform(progress, [start, end], [DIM, 1]);
   // Reduced motion snaps to 1 through the same bound value (see Hero), so the
   // server-rendered 0.25 is overwritten as soon as the preference is known.
   const opacity = useTransform(raw, (v) => (reduced ? 1 : v));
-  return <motion.span style={{ opacity }}>{word}</motion.span>;
+  const span = <motion.span style={{ opacity }}>{word}</motion.span>;
+  return em ? <em>{span}</em> : span;
+}
+
+/**
+ * The paragraph's words with the `*…*` accent resolved (INTERACTIVE.md: one
+ * italic word per headline set). A word is emphasised when every one of its
+ * characters sits inside a run; the asterisks never reach the DOM.
+ */
+function splitMarkup(text: string): Array<{ word: string; em: boolean }> {
+  const out: Array<{ word: string; em: boolean }> = [];
+  text.split(/\*([^*]+)\*/).forEach((part, i) => {
+    for (const word of part.split(/\s+/).filter(Boolean)) out.push({ word, em: i % 2 === 1 });
+  });
+  return out;
 }
 
 export default function Manifesto({ image, eyebrow, text }: ManifestoProps) {
@@ -80,11 +97,11 @@ export default function Manifesto({ image, eyebrow, text }: ManifestoProps) {
     offset: ["start 80%", "end 60%"],
   });
 
-  const words = text.split(/\s+/).filter(Boolean);
+  const words = splitMarkup(text);
   const slot = SPAN / Math.max(1, words.length);
 
   const children: ReactNode[] = [];
-  words.forEach((word, i) => {
+  words.forEach(({ word, em }, i) => {
     if (i > 0) children.push(" ");
     const start = i * slot;
     const end = Math.min(SPAN, (i + FEATHER) * slot);
@@ -92,6 +109,7 @@ export default function Manifesto({ image, eyebrow, text }: ManifestoProps) {
       <Word
         key={`${word}-${i}`}
         word={word}
+        em={em}
         progress={scrollYProgress}
         start={start}
         end={end}

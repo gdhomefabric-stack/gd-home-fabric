@@ -5,7 +5,15 @@ import Image from "next/image";
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
 import type { ImageAsset } from "@/lib/types";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
-import { EASE_IN_OUT, EASE_OUT_EXPO, Reveal, SPRING_SOFT, TextReveal, useReady } from "@/lib/motion";
+import {
+  EASE_IN_OUT,
+  EASE_OUT_EXPO,
+  EASE_SOFT,
+  Reveal,
+  SPRING_SOFT,
+  TextReveal,
+  useReady,
+} from "@/lib/motion";
 
 type HeroProps = {
   image: ImageAsset;
@@ -22,6 +30,23 @@ const HINT_FADE_PX = 60;
 /** One-off settle of the photo once the preloader lets go (MOTION.md: 1.12 → 1). */
 const SETTLE_FROM = { scale: 1.12 } as const;
 const SETTLE_TO = { scale: 1 } as const;
+
+/**
+ * Slow Ken Burns (INTERACTIVE.md): the photo breathes 1 → 1.08 over 20s and
+ * back, forever, on its own layer under the settle so the two compose. Static
+ * under reduced motion (the layer keeps the server's `scale: 1`).
+ */
+const KEN_BURNS_FROM = { scale: 1 } as const;
+const KEN_BURNS_TO = { scale: 1.08 } as const;
+const KEN_BURNS_TRANSITION = {
+  duration: 20,
+  ease: EASE_SOFT,
+  repeat: Infinity,
+  repeatType: "mirror",
+} as const;
+
+/** The headline's letters rise one by one once the preloader lets go (INTERACTIVE.md). */
+const HEADLINE_STAGGER = 0.02;
 
 /**
  * The preloader panel slides up over 1.1s and its bottom edge clears the
@@ -90,9 +115,10 @@ export default function Hero({ image, headline, sub }: HeroProps) {
       ref={sectionRef}
       className="relative h-svh min-h-[560px] w-full overflow-hidden bg-stone"
     >
-      {/* Photo. Outer wrapper: scroll-linked blur/scale/parallax. Inner wrapper:
-          one-off settle `scale 1.12 → 1` once the preloader lets go. Both
-          compose because they live on separate elements. */}
+      {/* Photo. Outer wrapper: scroll-linked blur/scale/parallax. Middle
+          wrapper: one-off settle `scale 1.12 → 1` once the preloader lets go.
+          Inner wrapper: the 20s Ken Burns loop. All three compose because they
+          live on separate elements. */}
       <motion.div
         className="img-matte absolute inset-0 will-change-[transform,filter]"
         style={{ filter, scale, y: imageY }}
@@ -107,15 +133,24 @@ export default function Hero({ image, headline, sub }: HeroProps) {
           animate={show ? SETTLE_TO : SETTLE_FROM}
           transition={reduce ? { duration: 0 } : { duration: 1.6, ease: EASE_OUT_EXPO }}
         >
-          <Image
-            src={image.src}
-            alt={image.alt}
-            fill
-            priority
-            quality={85}
-            sizes="100vw"
-            className="object-cover"
-          />
+          {/* Ken Burns. `initial` matches the server (scale 1) on every render;
+              reduced motion simply never animates away from it. */}
+          <motion.div
+            className="absolute inset-0 will-change-transform"
+            initial={KEN_BURNS_FROM}
+            animate={reduce ? KEN_BURNS_FROM : KEN_BURNS_TO}
+            transition={reduce ? { duration: 0 } : KEN_BURNS_TRANSITION}
+          >
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              priority
+              quality={85}
+              sizes="100vw"
+              className="object-cover"
+            />
+          </motion.div>
         </motion.div>
       </motion.div>
 
@@ -128,13 +163,17 @@ export default function Hero({ image, headline, sub }: HeroProps) {
       {/* Copy. Bottom padding clears the 51px scroll hint by ≥29px even on a 667px-tall phone. */}
       <div className="absolute inset-x-0 bottom-0 px-[var(--gutter)] pb-[clamp(100px,14svh,112px)]">
         <div className="mx-auto grid w-full max-w-[1440px] grid-cols-12 items-end gap-x-6 gap-y-8">
+          {/* Letter by letter (INTERACTIVE.md); `markup` sets the author's
+              `*word*` in italic. */}
           <TextReveal
             as="h1"
             text={headline}
             trigger={trigger}
             delay={HEADLINE_DELAY}
-            stagger={0.06}
-            className="font-display col-span-12 text-balance text-[clamp(56px,8.5vw,136px)] text-ink md:col-span-8 lg:col-span-7"
+            stagger={HEADLINE_STAGGER}
+            byLetter
+            markup
+            className="font-display col-span-12 text-balance text-[clamp(64px,10vw,168px)] font-light leading-[0.95] tracking-[-0.02em] text-ink md:col-span-8 lg:col-span-9"
           />
 
           <Reveal

@@ -28,6 +28,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
   type RefAttributes,
+  type RefObject,
 } from "react";
 
 // ---------------------------------------------------------------------------
@@ -150,10 +151,69 @@ export type TextRevealProps = {
   once?: boolean;
   /** split on characters instead of words (wordmarks) */
   byLetter?: boolean;
+  /**
+   * Treat `*…*` in `text` as an italic accent: the words inside render in an
+   * `<em>` (styled by `.font-display em`). One em may span several words;
+   * the asterisks never reach the DOM, so the accessible text is the plain
+   * sentence. Off by default so copy with literal asterisks is untouched.
+   */
+  markup?: boolean;
 };
 
 const WORD_HIDDEN = { y: "110%" } as const;
 const WORD_SHOWN = { y: "0%" } as const;
+
+/**
+ * The copy without its `*…*` accent marks ("Find your *size*" → "Find your
+ * size"). Use it wherever a marked-up string must render outside TextReveal
+ * (JSON-LD, <title>, aria-labels, sr-only copies, the preloader, Nav), so an
+ * asterisk never reaches the page.
+ */
+export function plain(text: string): string {
+  return text.replace(/\*([^*]+)\*/g, "$1");
+}
+
+type Unit = { text: string; em: boolean };
+/** One word of the copy: its reveal units (one per word, or one per letter). */
+type Word = { units: Unit[]; em: boolean };
+
+/**
+ * Split copy into words, each a list of reveal units. `markup` first marks the
+ * characters inside `*…*` runs as emphasised; the text then splits on
+ * whitespace into words (so a word can never break apart across lines), and
+ * `byLetter` splits every word into its characters. A word is emphasised when
+ * all of its characters are.
+ */
+function splitWords(text: string, byLetter: boolean, markup: boolean): Word[] {
+  const chars: Unit[] = [];
+  if (markup) {
+    text.split(/\*([^*]+)\*/).forEach((part, i) => {
+      for (const ch of part) chars.push({ text: ch, em: i % 2 === 1 });
+    });
+  } else {
+    for (const ch of text) chars.push({ text: ch, em: false });
+  }
+
+  const words: Word[] = [];
+  let current: Unit[] = [];
+  const flush = () => {
+    if (current.length === 0) return;
+    const em = current.every((c) => c.em);
+    words.push({
+      units: byLetter
+        ? current.map((c) => ({ text: c.text, em }))
+        : [{ text: current.map((c) => c.text).join(""), em }],
+      em,
+    });
+    current = [];
+  };
+  for (const c of chars) {
+    if (/\s/.test(c.text)) flush();
+    else current.push(c);
+  }
+  flush();
+  return words;
+}
 
 export function TextReveal({
   text,
@@ -166,31 +226,37 @@ export function TextReveal({
   trigger = "view",
   once = true,
   byLetter = false,
+  markup = false,
 }: TextRevealProps) {
   const reduced = useReducedMotionSafe();
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once, margin: IN_VIEW_MARGIN });
   const show = useTrigger(trigger, inView, reduced);
 
-  const units = byLetter ? Array.from(text) : text.split(/\s+/).filter(Boolean);
+  const words = splitWords(text, byLetter, markup);
+  const accessible = markup ? plain(text) : text;
 
   // One overflow-hidden mask per unit. The inter-word space is emitted
-  // *between* the masks, never inside one: a trailing space at the end of an
-  // inline-block is collapsed by CSS, which used to run the words together.
-  // (By-letter wordmarks keep their space units inside a mask, as a
-  // non-breaking space, so the letters stay one run.)
+  // *between* the words, never inside a mask: a trailing space at the end of
+  // an inline-block is collapsed by CSS, which used to run the words together.
   //
   // Word masks are the real, accessible text: the words and the spaces between
   // them read as one sentence, so copy, find-in-page, reader mode and search
-  // snippets see the heading once. Only the by-letter wordmark hides its
+  // snippets see the heading once. Only the by-letter variant hides its
   // per-letter spans (they would be read letter by letter) behind an sr-only
-  // copy of the whole string.
-  const children: ReactNode[] = [];
-  units.forEach((unit, i) => {
-    if (i > 0 && !byLetter) children.push(" ");
-    children.push(
+  // copy of the whole string; its letters are grouped per word in a
+  // `whitespace-nowrap inline-block`, so a line can only break at the real
+  // spaces between words, never between the letters of one word.
+  //
+  // With `markup`, consecutive emphasised words are grouped inside one <em>
+  // (an inline element around the inline-block masks), so the italic run can
+  // span several words while every word still rises on its own.
+  let unitIndex = 0;
+  const mask = (unit: Unit) => {
+    const i = unitIndex++;
+    return (
       <span
-        key={`${unit}-${i}`}
+        key={`${unit.text}-${i}`}
         aria-hidden={byLetter || undefined}
         className={cn(
           "inline-block overflow-hidden align-bottom",
@@ -206,11 +272,47 @@ export function TextReveal({
             reduced ? INSTANT : { duration, delay: delay + i * stagger, ease: EASE_OUT_EXPO }
           }
         >
-          {unit === " " ? "\u00a0" : unit}
+          {unit.text}
         </motion.span>
-      </span>,
+      </span>
     );
+  };
+  const renderWord = (word: Word, w: number): ReactNode =>
+    byLetter ? (
+      <span key={`w-${w}`} className="inline-block whitespace-nowrap">
+        {word.units.map(mask)}
+      </span>
+    ) : (
+      mask(word.units[0])
+    );
+
+  const children: ReactNode[] = [];
+  let group: ReactNode[] = [];
+  let groupStart = 0;
+  const flushEm = () => {
+    if (group.length === 0) return;
+    children.push(<em key={`em-${groupStart}`}>{group}</em>);
+    group = [];
+  };
+  words.forEach((word, w) => {
+    const prev = w > 0 ? words[w - 1] : null;
+    const spacer = w > 0 ? " " : null;
+    if (word.em) {
+      if (!prev?.em) {
+        // the space before an em run sits outside it
+        if (spacer) children.push(spacer);
+        groupStart = w;
+      } else if (spacer) {
+        group.push(spacer);
+      }
+      group.push(renderWord(word, w));
+      return;
+    }
+    if (prev?.em) flushEm();
+    if (spacer) children.push(spacer);
+    children.push(renderWord(word, w));
   });
+  flushEm();
 
   // `aria-label` is not permitted on generic elements (span/div), so the
   // by-letter variant exposes its text through a visually-hidden span instead.
@@ -222,9 +324,122 @@ export function TextReveal({
   return createElement(
     as,
     props,
-    byLetter ? <span className="sr-only">{text}</span> : null,
+    byLetter ? <span className="sr-only">{accessible}</span> : null,
     ...children,
   );
+}
+
+// ---------------------------------------------------------------------------
+// Rule \u2014 a hairline that draws from the left on view
+// ---------------------------------------------------------------------------
+
+const RULE_HIDDEN = { scaleX: 0 } as const;
+const RULE_SHOWN = { scaleX: 1 } as const;
+
+export function Rule({ className }: { className?: string }) {
+  const reduced = useReducedMotionSafe();
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: IN_VIEW_MARGIN });
+  const show = reduced || inView;
+
+  return (
+    <motion.div
+      ref={ref}
+      aria-hidden
+      className={cn("h-px bg-hairline w-full origin-left will-change-transform", className)}
+      initial={RULE_HIDDEN}
+      animate={show ? RULE_SHOWN : RULE_HIDDEN}
+      transition={reduced ? INSTANT : { duration: 1.2, ease: EASE_OUT_EXPO }}
+    />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// useCursorParallax \u2014 pointer-position translate + tilt for photo cards
+// ---------------------------------------------------------------------------
+
+export type CursorParallaxOptions = {
+  /** px the inner layer translates at the element's edges (default 12) */
+  max?: number;
+  /** degrees the card tilts at the element's edges (default 2) */
+  tilt?: number;
+};
+
+export type CursorParallax = {
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+  rotateX: MotionValue<number>;
+  rotateY: MotionValue<number>;
+  onPointerMove: (e: ReactPointerEvent<HTMLElement>) => void;
+  onPointerLeave: () => void;
+};
+
+/** True on a `(pointer: coarse)` device, false on the server and until mounted. */
+function useCoarsePointer(): boolean {
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(pointer: coarse)");
+    const update = () => setCoarse(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return coarse;
+}
+
+/**
+ * Cursor-follow parallax. Put `x`/`y` on the inner image layer and
+ * `rotateX`/`rotateY` on the card, spread the handlers onto the element `ref`
+ * points at (give the card `perspective` via its parent or `transformPerspective`).
+ * Inert under reduced motion and on coarse pointers: the values rest at 0.
+ */
+export function useCursorParallax(
+  ref: RefObject<HTMLElement | null>,
+  opts?: CursorParallaxOptions,
+): CursorParallax {
+  const max = opts?.max ?? 12;
+  const tilt = opts?.tilt ?? 2;
+  const reduced = useReducedMotionSafe();
+  const coarse = useCoarsePointer();
+  const inert = reduced || coarse;
+
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const rawRx = useMotionValue(0);
+  const rawRy = useMotionValue(0);
+  const x = useSpring(rawX, SPRING_SOFT);
+  const y = useSpring(rawY, SPRING_SOFT);
+  const rotateX = useSpring(rawRx, SPRING_SOFT);
+  const rotateY = useSpring(rawRy, SPRING_SOFT);
+
+  const rest = () => {
+    rawX.set(0);
+    rawY.set(0);
+    rawRx.set(0);
+    rawRy.set(0);
+  };
+
+  useEffect(() => {
+    if (inert) rest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inert]);
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLElement>) => {
+    const el = ref.current;
+    if (!el || inert || e.pointerType === "touch") return;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) return;
+    // -1 \u2026 1 across the element, clamped so a fast exit never overshoots
+    const px = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width) * 2 - 1));
+    const py = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height) * 2 - 1));
+    rawX.set(px * max);
+    rawY.set(py * max);
+    // tilt toward the pointer: right edge turns the card's right side away
+    rawRy.set(px * tilt);
+    rawRx.set(-py * tilt);
+  };
+
+  return { x, y, rotateX, rotateY, onPointerMove, onPointerLeave: rest };
 }
 
 // ---------------------------------------------------------------------------

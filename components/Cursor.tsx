@@ -6,12 +6,14 @@
  * An 8px dot that tracks the pointer instantly and a 40px ring that follows it
  * on a spring. Both sit under `mix-blend-mode: difference`, so they invert over
  * photos. Over `[data-cursor="view"]` the ring grows to 88px, fills, and shows a
- * serif "View"; over `a, button, [data-cursor="link"]` it shrinks to 24px; over
- * `[data-cursor="dot"]` (small labelled controls such as the finder chips and
- * the care toggles, where a 24px ring would paint through the label) the ring
- * folds away and only the dot remains. Pressing the pointer squeezes the ring
- * to 80% and swells the dot to 160% until release. Nothing is rendered on
- * coarse pointers or under reduced motion.
+ * serif "View"; over `[data-cursor="open"]` (lightbox triggers, INTERACTIVE.md
+ * §3) it grows to 120px with "Open"; over `[data-cursor="drag"]` (the materials
+ * drag gallery) to 96px with "Drag"; over `a, button, [data-cursor="link"]` it
+ * shrinks to 24px; over `[data-cursor="dot"]` (small labelled controls such as
+ * the finder chips and the care toggles, where a 24px ring would paint through
+ * the label) the ring folds away and only the dot remains. Pressing the
+ * pointer squeezes the ring to 80% and swells the dot to 160% until release.
+ * Nothing is rendered on coarse pointers or under reduced motion.
  *
  * Mount once per page (home and /credits). Hover state is delegated: a single
  * `pointerover`/`pointerout` pair on `document` resolves the target with
@@ -19,11 +21,11 @@
  */
 
 import { motion, useMotionValue, useSpring } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EASE_OUT_EXPO, SPRING_SNAPPY } from "@/lib/motion";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
 
-type Mode = "default" | "link" | "dot" | "view";
+type Mode = "default" | "link" | "dot" | "view" | "open" | "drag";
 
 /** Resting ring diameter. The other states scale it — width/height never animate. */
 const RING_PX = 40;
@@ -32,6 +34,18 @@ const RING_SCALE: Record<Mode, number> = {
   link: 24 / RING_PX,
   dot: 0,
   view: 88 / RING_PX,
+  open: 120 / RING_PX,
+  drag: 96 / RING_PX,
+};
+/**
+ * Labelled states: the ring fills and carries a serif word. The label is
+ * painted black under `difference`, which only reads on the filled disc, so
+ * every labelled state is also a filled one.
+ */
+const LABEL: Partial<Record<Mode, string>> = {
+  view: "View",
+  open: "Open",
+  drag: "Drag",
 };
 /** Press feedback: ring squeeze and dot swell while the pointer is down. */
 const PRESS_RING = 0.8;
@@ -49,6 +63,9 @@ const PAINT_CLEAR = "rgba(222, 213, 194, 0)";
 /** Which cursor state the element under the pointer asks for. */
 function modeFor(target: EventTarget | null): Mode {
   if (!(target instanceof Element)) return "default";
+  // Most specific first: a lightbox trigger is usually also a button.
+  if (target.closest('[data-cursor="open"]')) return "open";
+  if (target.closest('[data-cursor="drag"]')) return "drag";
   if (target.closest('[data-cursor="view"]')) return "view";
   if (target.closest('[data-cursor="dot"]')) return "dot";
   if (target.closest('a, button, [data-cursor="link"]')) return "link";
@@ -124,11 +141,17 @@ export default function Cursor() {
     };
   }, [active, x, y]);
 
+  // The word stays put while the label fades out, so leaving a trigger never
+  // swaps "Open" for "View" mid-fade.
+  const lastLabel = useRef<string>("View");
+  const label = LABEL[mode];
+  if (label) lastLabel.current = label;
+
   if (!active) return null;
 
-  const isView = mode === "view";
+  const filled = label !== undefined;
   const ringScale = RING_SCALE[mode] * (pressed ? PRESS_RING : 1);
-  const dotScale = isView ? 0 : pressed ? PRESS_DOT : 1;
+  const dotScale = filled ? 0 : pressed ? PRESS_DOT : 1;
 
   return (
     <>
@@ -149,7 +172,7 @@ export default function Cursor() {
           <motion.span
             className="absolute -top-5 -left-5 block h-10 w-10 rounded-full border"
             style={{ borderColor: PAINT }}
-            animate={{ scale: ringScale, backgroundColor: isView ? PAINT : PAINT_CLEAR }}
+            animate={{ scale: ringScale, backgroundColor: filled ? PAINT : PAINT_CLEAR }}
             transition={{
               scale: { type: "spring", ...SPRING_SNAPPY },
               backgroundColor: { duration: 0.4, ease: EASE_OUT_EXPO },
@@ -159,10 +182,10 @@ export default function Cursor() {
               type on the ink-coloured disc over the page. */}
           <motion.span
             className="font-display absolute -top-11 -left-11 flex h-22 w-22 items-center justify-center text-[16px] leading-none text-black select-none"
-            animate={{ opacity: isView ? 1 : 0, y: isView ? 0 : 6 }}
+            animate={{ opacity: filled ? 1 : 0, y: filled ? 0 : 6 }}
             transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
           >
-            View
+            {lastLabel.current}
           </motion.span>
         </motion.div>
 

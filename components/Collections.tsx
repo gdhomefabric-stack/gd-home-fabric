@@ -10,8 +10,8 @@
  * leading column(s) kept clear for the fixed, labelled side index (which needs
  * two columns' width between 1024 and 1279px), and stays sticky while the
  * photo column (cols 7–12) runs past the gutter to the right viewport edge.
- * The photos stack back to back (8px gaps), each nearly a viewport tall
- * (`min(92svh, 1100px)`), so consecutive collections read as one continuous
+ * The photos stack back to back (8px gaps), each a viewport tall
+ * (`min(100svh, 1200px)`), so consecutive collections read as one continuous
  * strip of photography beside a narrow cream text column. The bleed is a
  * negative right margin on the column, clipped by the outer section's
  * `overflow-x-clip` (clip, not hidden: it must not become a scroll container,
@@ -40,12 +40,20 @@
  *   The `(N).` index and the "N items" label slide in from the left
  *   (`x -16 → 0`, opacity) once their row is in view.
  * - Photos: `ImageReveal` clip wipe + inner scale + scroll parallax (0.08) +
- *   scroll-velocity skew, with `data-cursor="view"` for the custom cursor.
- *   Hover scales the photo 1.04 / 1.2s. Each photo is a real `#range` link
- *   ("View <title> in the range"), so the "View" cursor leads somewhere: the
- *   same glide as "See sizes and prices". The skew is a vertical shear and the
- *   parallax is vertical, both inside the reveal's own overflow-hidden box, so
- *   neither can widen the page.
+ *   scroll-velocity skew. Hover scales the photo 1.04 / 1.2s. Each photo is a
+ *   `<button>` ("Open photo: <alt>", `data-cursor="open"`) that opens the
+ *   lightbox (`@/lib/lightbox`) on that collection's photos, at that photo.
+ *   Cursor-follow parallax (`useCursorParallax`): the inner image drifts
+ *   ±12px with the pointer and the box tilts ±2° (`rotateX/rotateY` under a
+ *   `perspective` on the figure); off on touch and under reduced motion. The
+ *   first photo of each collection opens at scale 1.06 and settles to 1 as it
+ *   scrolls into full view (scroll-linked, through `SPRING_SOFT`). The skew
+ *   is a vertical shear and the parallax is vertical, both inside the
+ *   reveal's own overflow-hidden box, so neither can widen the page; the tilt
+ *   is a couple of degrees on a box that is already clipped by the section.
+ * - Index: the oversized outlined numeral (`SectionIndex`) sits above the
+ *   title, which rises into its lower edge; the small `(N).` stays as a tiny
+ *   label beside the item count. List hairlines are `Rule`s that draw in.
  * - Text column (≥lg): opacity 1 → 0.25 and y 0 → -24px (through `SPRING_SOFT`)
  *   as the sticky block is pushed out by the end of its grid row. The fade is
  *   keyed to the *measured* push point (sticky top + block height + bottom
@@ -65,7 +73,18 @@ import type { Collection, ImageAsset } from "@/lib/types";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
 import { useMediaQuery } from "@/lib/media";
 import { replaceHash, scrollToTarget } from "@/lib/scroll";
-import { cn, EASE_OUT_EXPO, ImageReveal, Reveal, SPRING_SOFT, TextReveal } from "@/lib/motion";
+import { useLightbox } from "@/lib/lightbox";
+import SectionIndex from "@/components/SectionIndex";
+import {
+  cn,
+  EASE_OUT_EXPO,
+  ImageReveal,
+  Reveal,
+  Rule,
+  SPRING_SOFT,
+  TextReveal,
+  useCursorParallax,
+} from "@/lib/motion";
 
 declare global {
   interface Window {
@@ -117,6 +136,14 @@ const WIDE_QUERY = "(min-width: 1024px)";
 /** Scroll parallax for every column photo (AESTHETIC.md: 0.08, skew on). */
 const PHOTO_PARALLAX = 0.08;
 
+/** Cursor-follow parallax (INTERACTIVE.md): image ±12px, box tilt ±2°. */
+const CURSOR_PARALLAX = { max: 12, tilt: 2 } as const;
+/** `perspective` (px) on the figure that the tilted box sits in. */
+const TILT_PERSPECTIVE = 1200;
+
+/** The first photo of a collection opens at this scale and settles to 1 in view. */
+const FIRST_PHOTO_SCALE_FROM = 1.06;
+
 /**
  * Responsive `sizes` for a portrait photo, which `object-cover` fits to the
  * column's width. From `lg` the column is grid columns 7–12 plus the bleed to
@@ -129,7 +156,7 @@ const PORTRAIT_SIZES = "(min-width: 1024px) 50vw, 100vw";
 /**
  * A landscape photo in the tall box is fitted by *height* instead, so the
  * pixels it needs are the box height times its aspect: about the viewport's
- * width from `lg` (92svh at 3:2 on a 16:10 screen) and well over it on a
+ * width from `lg` (100svh at 3:2 on a 16:10 screen) and well over it on a
  * phone (70svh of a tall screen). A width-only `sizes` would fetch a 750px
  * variant and stretch it 1.6x across an 828px box.
  */
@@ -140,11 +167,11 @@ const photoSizes = (asset: ImageAsset): string =>
   asset.width > asset.height ? LANDSCAPE_SIZES : PORTRAIT_SIZES;
 
 /**
- * Photo boxes: full-bleed and 70svh below `lg`; from `lg` nearly a viewport
- * tall, capped so a very tall monitor does not get a 1600px photo. The paper
- * tone shows through the 1.3s clip wipe.
+ * Photo boxes: full-bleed and 70svh below `lg`; from `lg` a viewport tall,
+ * capped so a very tall monitor does not get a 1600px photo. The paper tone
+ * shows through the 1.3s clip wipe.
  */
-const PHOTO_BOX_CLASS = "bg-paper-deep h-[70svh] lg:h-[min(92svh,1100px)]";
+const PHOTO_BOX_CLASS = "bg-paper-deep h-[70svh] lg:h-[min(100svh,1200px)]";
 
 /**
  * Below `lg` the photo escapes the container's gutter on both sides; from `lg`
@@ -171,9 +198,12 @@ const SLIDE_SHOWN = { x: 0, opacity: 1 } as const;
 const PHOTO_IMG_CLASS =
   "object-cover transition-transform duration-[1200ms] ease-out-expo group-hover:scale-[1.04] group-focus-visible:scale-[1.04]";
 
-/** The photo links: the hover group lives here, plus a visible keyboard focus ring. */
-const PHOTO_LINK_CLASS =
-  "group block focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink";
+/**
+ * The photo buttons: the hover group lives here, plus a visible keyboard focus
+ * ring. A full-width block so the tilt pivots about the photo's own centre.
+ */
+const PHOTO_BUTTON_CLASS =
+  "group block w-full cursor-pointer text-left focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink";
 
 /* -------------------------------------------------------------------------- */
 /*  Helpers                                                                   */
@@ -236,7 +266,9 @@ export default function Collections({ intro, collections, images }: CollectionsP
       // sub-lg full-bleed photos end at the viewport edge, and anything past it
       // (a layout scrollbar's width) is clipped without a scroll container, so
       // the sticky text column keeps sticking to the window.
-      className="relative overflow-x-clip scroll-mt-16 bg-paper text-ink md:scroll-mt-20"
+      // No background of its own: the ScrollTint behind <main>'s content is
+      // paper here and starts its ramp to #efe9df as the Range enters below.
+      className="relative overflow-x-clip scroll-mt-16 text-ink md:scroll-mt-20"
     >
       {/* Intro */}
       <div className="mx-auto max-w-[1440px] px-[var(--gutter)] pt-[clamp(96px,12vw,200px)] pb-[clamp(24px,3vw,48px)]">
@@ -358,10 +390,8 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
     transition: reduce ? { duration: 0 } : { duration: 1, delay, ease: EASE_OUT_EXPO },
   });
 
-  // "See sizes and prices" and every photo lead to the range: plain `#range`
-  // anchors, upgraded to the shared glide (`lib/scroll`) when JS is on. The
-  // photos carry the "View" cursor, so they have to go somewhere; they are
-  // named for the collection they show.
+  // "See sizes and prices" leads to the range: a plain `#range` anchor,
+  // upgraded to the shared glide (`lib/scroll`) when JS is on.
   const goToRange = (event: MouseEvent<HTMLAnchorElement>) => {
     const target = document.getElementById("range");
     if (!target) return; // let the browser follow the hash normally
@@ -369,9 +399,11 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
     scrollToTarget(target, reduce);
     replaceHash("#range");
   };
-  const viewLabel = `View ${collection.title} in the range`;
 
   const photos = resolvePhotos(collection.imageKeys, images);
+  // Every photo opens the lightbox on this collection's photos, at itself.
+  const sectionImages = photos.map((photo) => photo.asset);
+  const { open } = useLightbox();
   const productCount = collection.productSlugs.length;
   const itemCount = collection.items.length;
 
@@ -422,28 +454,39 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
                   className="absolute -top-px left-0 h-px w-full origin-left bg-ink"
                   style={{ scaleX: reduce ? 1 : progress }}
                 />
-                <motion.span className="label text-ink" {...slideIn(0)}>
-                  {formatIndex(collection.index)}
-                </motion.span>
-                <motion.span className="label text-stone-deep" {...slideIn(STEP)}>
+                {/* The small `(N).` stays as a tiny label beside the count;
+                    the big outlined numeral below carries the index now. */}
+                <motion.span className="label text-stone-deep" {...slideIn(0)}>
+                  <span className="text-ink">{formatIndex(collection.index)}</span>
+                  <span aria-hidden="true" className="mx-2">
+                    ·
+                  </span>
                   {productCount} {productCount === 1 ? "item" : "items"}
                 </motion.span>
               </div>
 
+              <SectionIndex index={collection.index} className="mt-6 lg:mt-8" />
+
+              {/* `relative` so the title paints over the (opacity < 1) numeral
+                  it rises into; the negative margin is the overlap. */}
               <TextReveal
                 as="h3"
                 id={headingId}
                 text={collection.title}
-                className="font-display mt-8 text-balance text-[clamp(32px,4vw,56px)] lg:mt-12"
+                markup
+                className="font-display relative -mt-[0.45em] text-balance text-[clamp(48px,6.5vw,104px)] font-light leading-[0.95] tracking-[-0.02em]"
               />
 
               <Reveal delay={STEP}>
                 <p className="mt-6 max-w-[46ch] text-ink-soft lg:mt-8">{collection.body}</p>
               </Reveal>
 
+              {/* Each row sits under a `Rule` that draws in from the left; a
+                  closing rule ends the list (INTERACTIVE.md). */}
               <ul ref={listRef} className="mt-8 lg:mt-10">
                 {collection.items.map((item, i) => (
-                  <li key={`${i}-${item}`} className="border-t border-hairline last:border-b">
+                  <li key={`${i}-${item}`}>
+                    <Rule />
                     <Reveal
                       trigger={rowTrigger}
                       delay={rowDelay(i)}
@@ -457,6 +500,7 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
                   </li>
                 ))}
               </ul>
+              {itemCount > 0 ? <Rule /> : null}
 
               <Reveal delay={stepDelay(2 + itemCount)} className="mt-8 lg:mt-10">
                 <a
@@ -483,27 +527,93 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
             )}
           >
             {photos.map(({ key, asset }, i) => (
-              <figure
+              <CollectionPhoto
                 key={`${key}-${i}`}
-                className={cn(PHOTO_FIGURE_CLASS, i >= 2 && "hidden lg:block")}
-              >
-                <a href="#range" onClick={goToRange} aria-label={viewLabel} className={PHOTO_LINK_CLASS}>
-                  <ImageReveal parallax={PHOTO_PARALLAX} cursor="view" className={PHOTO_BOX_CLASS}>
-                    <Image
-                      src={asset.src}
-                      alt={asset.alt}
-                      fill
-                      sizes={photoSizes(asset)}
-                      className={PHOTO_IMG_CLASS}
-                      style={asset.objectPosition ? { objectPosition: asset.objectPosition } : undefined}
-                    />
-                  </ImageReveal>
-                </a>
-              </figure>
+                asset={asset}
+                first={i === 0}
+                hiddenNarrow={i >= 2}
+                reduce={reduce}
+                onOpen={() => open(sectionImages, i)}
+              />
             ))}
           </div>
         ) : null}
       </div>
     </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  CollectionPhoto                                                           */
+/* -------------------------------------------------------------------------- */
+
+type CollectionPhotoProps = {
+  asset: ImageAsset;
+  /** The collection's first photo: opens at 1.06 and settles to 1 in view. */
+  first: boolean;
+  /** Third photo and beyond: `display:none` below `lg` (see the header). */
+  hiddenNarrow: boolean;
+  reduce: boolean;
+  onOpen: () => void;
+};
+
+/**
+ * One column photo: a `<button>` into the lightbox, wrapped in the shared
+ * `ImageReveal`, with the cursor-follow parallax (image `x/y`, box
+ * `rotateX/rotateY`, `perspective` on the figure) and, for the first photo,
+ * the scroll-linked settle. The pointer handlers live on the button (the
+ * measured box); the hook keeps them inert on touch and under reduced motion.
+ */
+function CollectionPhoto({ asset, first, hiddenNarrow, reduce, onOpen }: CollectionPhotoProps) {
+  const boxRef = useRef<HTMLButtonElement>(null);
+  const { x, y, rotateX, rotateY, onPointerMove, onPointerLeave } = useCursorParallax(
+    boxRef,
+    CURSOR_PARALLAX,
+  );
+
+  // 1.06 → 1 from the box's top entering the viewport to the box filling it
+  // (its bottom edge reaching the viewport's bottom), through `SPRING_SOFT`.
+  // Only the first photo of a collection uses it; the others stay at 1.
+  const { scrollYProgress: entering } = useScroll({
+    target: boxRef,
+    offset: ["start end", "end end"],
+  });
+  const settleRaw = useTransform(entering, [0, 1], [FIRST_PHOTO_SCALE_FROM, 1]);
+  const settle = useSpring(settleRaw, SPRING_SOFT);
+  const scale = useTransform(settle, (v) => (first && !reduce ? v : 1));
+
+  return (
+    <figure
+      className={cn(PHOTO_FIGURE_CLASS, hiddenNarrow && "hidden lg:block")}
+      style={{ perspective: TILT_PERSPECTIVE }}
+    >
+      <motion.button
+        ref={boxRef}
+        type="button"
+        onClick={onOpen}
+        onPointerMove={onPointerMove}
+        onPointerLeave={onPointerLeave}
+        aria-label={`Open photo: ${asset.alt}`}
+        data-cursor="open"
+        className={PHOTO_BUTTON_CLASS}
+        style={{ rotateX, rotateY }}
+      >
+        <ImageReveal parallax={PHOTO_PARALLAX} className={PHOTO_BOX_CLASS}>
+          {/* Inner layer: pointer drift + the first-photo settle, on its own
+              element so it composes with the reveal's scale/parallax outside
+              and the CSS hover scale on the image inside. */}
+          <motion.div className="absolute inset-0 will-change-transform" style={{ x, y, scale }}>
+            <Image
+              src={asset.src}
+              alt={asset.alt}
+              fill
+              sizes={photoSizes(asset)}
+              className={PHOTO_IMG_CLASS}
+              style={asset.objectPosition ? { objectPosition: asset.objectPosition } : undefined}
+            />
+          </motion.div>
+        </ImageReveal>
+      </motion.button>
+    </figure>
   );
 }

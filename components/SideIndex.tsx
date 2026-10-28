@@ -65,6 +65,12 @@ declare global {
  *
  * Clicking a row scrolls to the section through `lib/scroll` (Lenis when
  * mounted, native otherwise). Rows are real `#id` anchors.
+ *
+ * Phase 4 (INTERACTIVE.md): the active label scales 1 → 1.08 from its left
+ * edge (a transform, so the column never reflows) and the dot pulses once
+ * (1 → 1.6 → 1, 0.5s) each time the active row changes: the pulse lives on a
+ * child of the `layoutId` glyph, keyed on the active id, so it replays per
+ * change without touching the layout projection.
  */
 
 type SideIndexItem = SiteContent["nav"]["index"][number];
@@ -82,6 +88,11 @@ const LG_QUERY = "(min-width: 64rem)";
 /** Row entrance (MOTION.md card stagger). */
 const ROW_DELAY = 0.1;
 const ROW_STAGGER = 0.07;
+/** INTERACTIVE.md: the active label grows to this (a transform, so no reflow). */
+const ACTIVE_SCALE = 1.08;
+/** The dot pulses once on each change: 1 → 1.6 → 1 over 0.5s. */
+const DOT_PULSE = [1, 1.6, 1];
+const DOT_PULSE_SECONDS = 0.5;
 
 const subscribeLg = (onChange: () => void) => {
   const query = window.matchMedia(LG_QUERY);
@@ -266,6 +277,9 @@ export default function SideIndex({ items }: SideIndexProps) {
   const fade = reduce ? { duration: 0 } : { duration: 0.6, ease: EASE_SOFT };
   const dotTransition = reduce ? { duration: 0 } : { type: "spring" as const, ...SPRING_SOFT };
   const rowTransition = reduce ? { duration: 0 } : { duration: 0.5, ease: EASE_SOFT };
+  const pulseTransition = reduce
+    ? { duration: 0 }
+    : { duration: DOT_PULSE_SECONDS, ease: EASE_SOFT, times: [0, 0.4, 1] };
 
   return (
     <motion.nav
@@ -310,11 +324,25 @@ export default function SideIndex({ items }: SideIndexProps) {
                           className="absolute inset-0 flex items-center justify-center text-[7px] leading-none"
                           transition={dotTransition}
                         >
-                          ●
+                          <motion.span
+                            key={`pulse-${active}`}
+                            className="inline-block"
+                            initial={{ scale: 1 }}
+                            animate={{ scale: reduce ? 1 : DOT_PULSE }}
+                            transition={pulseTransition}
+                          >
+                            ●
+                          </motion.span>
                         </motion.span>
                       ) : null}
                     </span>
-                    <span className="whitespace-nowrap">{item.label}</span>
+                    <motion.span
+                      className="inline-block origin-left whitespace-nowrap will-change-transform"
+                      animate={{ scale: isActive ? ACTIVE_SCALE : 1 }}
+                      transition={rowTransition}
+                    >
+                      {item.label}
+                    </motion.span>
                   </motion.a>
                 </Reveal>
               </li>
