@@ -26,13 +26,6 @@ const ROW_Y = 20;
 const READOUT_Y = 8;
 const READOUT_DURATION = 0.35;
 
-/**
- * Keeps the first grid column clear for the fixed side index at `lg`, like the
- * Collections text column (see ProductGrid for the arithmetic).
- */
-const INDEX_CLEAR =
-  "lg:pl-[calc(min(100%,1440px)/12_+_24px)] xl:pl-[calc(min(100%,1440px)/12_+_2px)]";
-
 /** A pillow footprint in inches. `w` is the long edge and is drawn horizontally. */
 type Dims = { w: number; h: number };
 
@@ -113,9 +106,9 @@ export default function SizeGuide({ rows }: SizeGuideProps) {
     <section
       id="sizes"
       aria-labelledby="sizes-heading"
-      className="scroll-mt-16 bg-paper px-[var(--gutter)] pt-[clamp(40px,5vw,72px)] pb-[clamp(72px,10vw,140px)] text-ink md:scroll-mt-20"
+      className="scroll-mt-16 bg-paper px-[var(--gutter)] pt-[clamp(96px,12vw,200px)] pb-[clamp(72px,10vw,140px)] text-ink md:scroll-mt-20"
     >
-      <div className={cn("mx-auto w-full max-w-[1440px]", INDEX_CLEAR)}>
+      <div className="mx-auto w-full max-w-[1440px]">
         {/* `data-index-avoid`: the fixed side index fades while these pass under it. */}
         <div data-index-avoid>
           <Reveal className="rule flex items-baseline justify-between gap-4 pt-5">

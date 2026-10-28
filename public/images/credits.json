@@ -12,6 +12,18 @@
     "unsplashId": "W1x69VGN4k8"
   },
   {
+    "key": "manifesto",
+    "src": "/images/manifesto.jpg",
+    "width": 1200,
+    "height": 800,
+    "alt": "A dim bedroom at dusk, a bed beneath a window blind",
+    "credit": "Photo by Quin Stevenson on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/empty-white-and-gray-bed-set-3oyeaivM_fE",
+    "photographer": "Quin Stevenson",
+    "photographerUrl": "https://unsplash.com/@qstevenson",
+    "unsplashId": "3oyeaivM_fE"
+  },
+  {
     "key": "collection-01-a",
     "src": "/images/collection-01-a.jpg",
     "width": 1600,
@@ -34,6 +46,163 @@
     "photographer": "Stockholm Paris Studio",
     "photographerUrl": "https://unsplash.com/@stockholmparis",
     "unsplashId": "lLIiI9PMm8g"
+  },
+  {
+    "key": "collection-01-c",
+    "src": "/images/collection-01-c.jpg",
+    "width": 2000,
+    "height": 1333,
+    "alt": "Soft white feathers layered over one another in pale light, close up",
+    "credit": "Photo by N on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/white-feathers-in-soft-light-JfknhSgANFQ",
+    "photographer": "N",
+    "photographerUrl": "https://unsplash.com/@fricoglaub",
+    "unsplashId": "JfknhSgANFQ"
+  },
+  {
+    "key": "collection-02-a",
+    "src": "/images/collection-02-a.jpg",
+    "width": 1330,
+    "height": 2000,
+    "alt": "Soft folds of plain white cotton in warm light, close up",
+    "credit": "Photo by Julissa Santana on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/white-textile-on-brown-wooden-table-B99QPn0T_7Q",
+    "photographer": "Julissa Santana",
+    "photographerUrl": "https://unsplash.com/@julissasantana",
+    "unsplashId": "B99QPn0T_7Q"
+  },
+  {
+    "key": "collection-02-b",
+    "src": "/images/collection-02-b.jpg",
+    "width": 1500,
+    "height": 2000,
+    "alt": "A rumpled white duvet and pillow on an unmade bed, bright and soft",
+    "credit": "Photo by Sincerely Media on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/white-bedspread-9nhxEa3PK30",
+    "photographer": "Sincerely Media",
+    "photographerUrl": "https://unsplash.com/@sincerelymedia",
+    "unsplashId": "9nhxEa3PK30"
+  },
+  {
+    "key": "collection-02-c",
+    "src": "/images/collection-02-c.jpg",
+    "width": 2000,
+    "height": 1333,
+    "alt": "Crumpled white cotton bedding in bright daylight, close up",
+    "credit": "Photo by Bree Anne on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/a-close-up-of-a-bed-with-white-sheets-24fe4bXlbu8",
+    "photographer": "Bree Anne",
+    "photographerUrl": "https://unsplash.com/@breebuddy",
+    "unsplashId": "24fe4bXlbu8"
+  },
+  {
+    "key": "collection-03-a",
+    "src": "/images/collection-03-a.jpg",
+    "width": 1333,
+    "height": 2000,
+    "alt": "A white pillow and duvet on a bed, striped with light through a window blind",
+    "credit": "Photo by Liz Vo on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/a-bed-with-white-sheets-and-white-pillows-pl3sj3DigxM",
+    "photographer": "Liz Vo",
+    "photographerUrl": "https://unsplash.com/@lvphotos",
+    "unsplashId": "pl3sj3DigxM"
+  },
+  {
+    "key": "collection-03-b",
+    "src": "/images/collection-03-b.jpg",
+    "width": 1577,
+    "height": 2000,
+    "alt": "Three white pillows stacked on a bed against a plain plaster wall",
+    "credit": "Photo by mk. s on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/a-stack-of-pillows-sitting-on-top-of-a-wooden-table-cqYHy3WI1Vw",
+    "photographer": "mk. s",
+    "photographerUrl": "https://unsplash.com/@mk__s",
+    "unsplashId": "cqYHy3WI1Vw"
+  },
+  {
+    "key": "collection-03-c",
+    "src": "/images/collection-03-c.jpg",
+    "width": 2000,
+    "height": 1333,
+    "alt": "A neatly made bed with white linen and four white pillows beneath an abstract wall panel, lit by a brass wall lamp",
+    "credit": "Photo by ubeyonroad on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/a-neatly-made-bed-with-white-linens-and-pillows-wItbwu49Wdc",
+    "photographer": "ubeyonroad",
+    "photographerUrl": "https://unsplash.com/@ubeyonroad",
+    "unsplashId": "wItbwu49Wdc"
+  },
+  {
+    "key": "collection-04-a",
+    "src": "/images/collection-04-a.jpg",
+    "width": 1500,
+    "height": 2000,
+    "alt": "A stack of folded white cotton, close up on the folded edges",
+    "credit": "Photo by Susan Wilkinson on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/a-close-up-of-a-white-sheet-on-a-bed-y9QJFGvdLWk",
+    "photographer": "Susan Wilkinson",
+    "photographerUrl": "https://unsplash.com/@susan_wilkinson",
+    "unsplashId": "y9QJFGvdLWk"
+  },
+  {
+    "key": "collection-04-b",
+    "src": "/images/collection-04-b.jpg",
+    "width": 1500,
+    "height": 2000,
+    "alt": "Crinkled white cotton lying loose in soft daylight, close up",
+    "credit": "Photo by Susan Wilkinson on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/white-textile-on-brown-wooden-table-DCPR_t-IbG0",
+    "photographer": "Susan Wilkinson",
+    "photographerUrl": "https://unsplash.com/@susan_wilkinson",
+    "unsplashId": "DCPR_t-IbG0"
+  },
+  {
+    "key": "collection-04-c",
+    "src": "/images/collection-04-c.jpg",
+    "width": 2000,
+    "height": 1333,
+    "alt": "White sheets hanging on a washing line in the sun, with a green garden behind",
+    "credit": "Photo by Mathias Reding on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/white-fabric-drying-in-the-sun-outdoors-P4XW-AXjrOA",
+    "photographer": "Mathias Reding",
+    "photographerUrl": "https://unsplash.com/@matreding",
+    "unsplashId": "P4XW-AXjrOA"
+  },
+  {
+    "key": "collection-05-a",
+    "src": "/images/collection-05-a.jpg",
+    "width": 1334,
+    "height": 2000,
+    "alt": "A white pillow in a plain white pillowcase propped against a white wall on an unmade bed",
+    "credit": "Photo by Annie Spratt on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/white-bed-pillow-against-white-wall-mIsAdq1jqKg",
+    "photographer": "Annie Spratt",
+    "photographerUrl": "https://unsplash.com/@anniespratt",
+    "unsplashId": "mIsAdq1jqKg",
+    "objectPosition": "center 70%"
+  },
+  {
+    "key": "collection-05-b",
+    "src": "/images/collection-05-b.jpg",
+    "width": 1333,
+    "height": 2000,
+    "alt": "Three white pillows in plain white pillowcases on a bed with a dark wooden headboard",
+    "credit": "Photo by Abhinav Bhardwaj on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/a-white-pillow-on-a-bed-LFMNXcFd0SA",
+    "photographer": "Abhinav Bhardwaj",
+    "photographerUrl": "https://unsplash.com/@abhinav1bhardwaj",
+    "unsplashId": "LFMNXcFd0SA"
+  },
+  {
+    "key": "collection-05-c",
+    "src": "/images/collection-05-c.jpg",
+    "width": 2000,
+    "height": 1501,
+    "alt": "Two white pillows in plain white pillowcases stacked on a bed, in soft grey light",
+    "credit": "Photo by the blowup on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/white-bed-pillow-on-bed-9W6BgX5hTvI",
+    "photographer": "the blowup",
+    "photographerUrl": "https://unsplash.com/@theblowup",
+    "unsplashId": "9W6BgX5hTvI"
   },
   {
     "key": "product-01",
@@ -84,11 +253,47 @@
     "unsplashId": "2P4jk-ma5EE"
   },
   {
+    "key": "cover-01",
+    "src": "/images/cover-01.jpg",
+    "width": 1500,
+    "height": 2000,
+    "alt": "Folded white cotton with sharp creases, close up",
+    "credit": "Photo by Mary Borozdina on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/a-close-up-of-white-sheets-and-sheets-on-a-bed-7jheUC0gLsg",
+    "photographer": "Mary Borozdina",
+    "photographerUrl": "https://unsplash.com/@mbacloud",
+    "unsplashId": "7jheUC0gLsg"
+  },
+  {
+    "key": "band-01",
+    "src": "/images/band-01.jpg",
+    "width": 2000,
+    "height": 1333,
+    "alt": "A rumpled white bed in dappled morning light, the pillow and sheets catching the sun beside a wooden bedside table",
+    "credit": "Photo by MChe Lee on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/rumpled-white-bed-in-sunlit-bedroom--Fe_er8ZTuU",
+    "photographer": "MChe Lee",
+    "photographerUrl": "https://unsplash.com/@mclee",
+    "unsplashId": "-Fe_er8ZTuU"
+  },
+  {
+    "key": "band-02",
+    "src": "/images/band-02.jpg",
+    "width": 2000,
+    "height": 1333,
+    "alt": "Three white pillows propped against a dark headboard, lit by a hard shaft of morning light, in black and white",
+    "credit": "Photo by Hansheng Zhao on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/white-pillows-with-morning-shadows-sYEUhcRwWW8",
+    "photographer": "Hansheng Zhao",
+    "photographerUrl": "https://unsplash.com/@co",
+    "unsplashId": "sYEUhcRwWW8"
+  },
+  {
     "key": "materials-velvet",
     "src": "/images/materials-velvet.jpg",
     "width": 1200,
     "height": 1600,
-    "alt": "Close-up of crushed velvet fabric in warm brown and cream tones",
+    "alt": "Close-up of velvet fabric in warm brown and cream tones",
     "credit": "Photo by Rue S on Unsplash",
     "creditUrl": "https://unsplash.com/photos/brown-and-white-floral-textile-26DFIOTiMS0",
     "photographer": "Rue S",
@@ -132,6 +337,18 @@
     "unsplashId": "hFvWfVxHlaY"
   },
   {
+    "key": "about-01",
+    "src": "/images/about-01.jpg",
+    "width": 1525,
+    "height": 2000,
+    "alt": "Leaf shadows falling across a white cotton sheet and the edge of a duvet on a bed",
+    "credit": "Photo by Laura Güldner on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/a-bed-with-a-white-comforter-and-white-sheets-iq5PjTk0gu4",
+    "photographer": "Laura Güldner",
+    "photographerUrl": "https://unsplash.com/@laurettag",
+    "unsplashId": "iq5PjTk0gu4"
+  },
+  {
     "key": "footer-01",
     "src": "/images/footer-01.jpg",
     "width": 1600,
@@ -142,5 +359,17 @@
     "photographer": "curaits",
     "photographerUrl": "https://unsplash.com/@curaits",
     "unsplashId": "GkKVXQixXlE"
+  },
+  {
+    "key": "footer-02",
+    "src": "/images/footer-02.jpg",
+    "width": 2000,
+    "height": 1600,
+    "alt": "A quiet bedroom corner: a grey upholstered bed with cream bedding, a small pendant lamp and a pale wooden floor",
+    "credit": "Photo by Wemel Wood on Unsplash",
+    "creditUrl": "https://unsplash.com/photos/minimalist-bedroom-with-a-neatly-made-bed-uhQHGyLungI",
+    "photographer": "Wemel Wood",
+    "photographerUrl": "https://unsplash.com/@wemelwood",
+    "unsplashId": "uhQHGyLungI"
   }
 ]

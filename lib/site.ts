@@ -43,5 +43,5 @@ export const OG_IMAGE = {
   url: "/og.jpg",
   width: 1200,
   height: 630,
-  alt: "Two plump white pillows against a pale wooden headboard in soft morning light, GD Home Fabric",
+  alt: "Two plump white pillows against a pale wooden headboard in soft morning light",
 } as const;

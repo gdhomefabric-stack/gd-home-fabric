@@ -11,8 +11,10 @@ import Preloader from "@/components/Preloader";
 import Nav from "@/components/Nav";
 import SideIndex from "@/components/SideIndex";
 import Hero from "@/components/Hero";
+import Manifesto from "@/components/Manifesto";
 import Collections from "@/components/Collections";
 import ProductGrid from "@/components/ProductGrid";
+import PhotoBand from "@/components/PhotoBand";
 import Materials from "@/components/Materials";
 import Craft from "@/components/Craft";
 import SizeGuide from "@/components/SizeGuide";
@@ -23,11 +25,14 @@ import Footer from "@/components/Footer";
 /**
  * Home — the single editorial page. A server component: it only reads the
  * content and photo manifests and hands them to the client components as
- * plain props, in the order fixed by CONTRACT.md.
+ * plain props, in the order fixed by AESTHETIC.md (phase 3):
+ *
+ *   Hero › Manifesto › Collections › ProductGrid › PhotoBand › Materials ›
+ *   Craft › PhotoBand › SizeGuide › Finder › Care; Footer.
  *
  * Each client component gets only the manifest entries it renders (`pick`):
  * every client boundary serialises its props into the RSC payload, so passing
- * the whole 36-entry manifest four times would ship ~50KB of repeated strings.
+ * the whole manifest several times would ship tens of KB of repeated strings.
  *
  * The global motion pieces (scroll hairline, custom cursor) are mounted once
  * here, ahead of the preloader, inside the one `ScrollVelocityProvider` that
@@ -56,6 +61,15 @@ function pick(keys: Array<string | undefined>): Record<string, ImageAsset> {
     if (asset) out[key] = asset;
   }
   return out;
+}
+
+/**
+ * One manifest entry by a key the content names as a plain string, or the
+ * named fallback when the manifest does not carry it: a band or the About
+ * photo must never render as an empty box because a key was mistyped.
+ */
+function asset(key: string, fallback: ImageKey): ImageAsset {
+  return (images[key as ImageKey] as ImageAsset | undefined) ?? img(fallback);
 }
 
 /** Absolute URL for a public path ("/images/x.jpg" → "https://…/images/x.jpg"). */
@@ -92,6 +106,10 @@ const isStorefrontUrl = (url: string) => {
  * schema.org graph for the home page. Prices are whole rupees (Amazon.in, 26
  * Oct 2026); each product carries one Offer per size/pack listing, linking to
  * that listing on Amazon.in (pillows are sold only there).
+ *
+ * No `image` on the products: the card photos are representative stock
+ * photography (lib/images.ts), not the product, and structured data must not
+ * present them as such. It returns once the owner's listing photos are in.
  */
 function structuredData() {
   const { products } = content;
@@ -131,35 +149,28 @@ function structuredData() {
     name: "The range",
     url: `${SITE_URL}/#range`,
     numberOfItems: products.length,
-    itemListElement: products.map((product, i) => {
-      // Only the owner's own product photo, never stock (none is set yet).
-      const photo = product.imageKey
-        ? (images[product.imageKey as ImageKey] as ImageAsset | undefined)
-        : undefined;
-      return {
-        "@type": "ListItem",
-        position: i + 1,
-        item: {
-          "@type": "Product",
-          "@id": `${SITE_URL}/#product-${product.slug}`,
-          name: product.name,
-          description: product.tagline,
-          image: photo ? absolute(photo.src) : undefined,
-          material: product.material,
-          // Inline, not an `@id` reference: Google's Rich Results Test does
-          // not resolve references for Product.brand.
-          brand: { "@type": "Brand", name: SITE_NAME },
-          offers: product.variants.map((v) => ({
-            "@type": "Offer",
-            sku: v.asin,
-            name: `${v.size} ${v.pack}`,
-            price: v.priceInr,
-            priceCurrency: "INR",
-            url: v.amazonUrl,
-          })),
-        },
-      };
-    }),
+    itemListElement: products.map((product, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Product",
+        "@id": `${SITE_URL}/#product-${product.slug}`,
+        name: product.name,
+        description: product.tagline,
+        material: product.material,
+        // Inline, not an `@id` reference: Google's Rich Results Test does
+        // not resolve references for Product.brand.
+        brand: { "@type": "Brand", name: SITE_NAME },
+        offers: product.variants.map((v) => ({
+          "@type": "Offer",
+          sku: v.asin,
+          name: `${v.size} ${v.pack}`,
+          price: v.priceInr,
+          priceCurrency: "INR",
+          url: v.amazonUrl,
+        })),
+      },
+    })),
   };
 
   return { "@context": "https://schema.org", "@graph": [organization, website, itemList] };
@@ -169,7 +180,8 @@ function structuredData() {
 const jsonLd = JSON.stringify(structuredData()).replace(/</g, "\\u003c");
 
 export default function HomePage() {
-  const { brand, nav, collections, products, materials, priceNote } = content;
+  const { brand, nav, collections, products, materials, priceNote, manifesto, bands } = content;
+  const [bandOne, bandTwo] = bands;
 
   const collectionImages = pick(collections.flatMap((c) => c.imageKeys));
   const productImages = pick(products.flatMap((p) => [p.imageKey, p.imageHoverKey]));
@@ -189,10 +201,15 @@ export default function HomePage() {
 
           <main id="top" className="relative z-10 bg-paper mb-[var(--footer-h,0px)]">
             <Hero image={img("hero")} headline={brand.heroHeadline} sub={brand.heroSub} />
+            <Manifesto image={img("manifesto")} eyebrow={manifesto.eyebrow} text={manifesto.text} />
             <Collections intro={brand.introLine} collections={collections} images={collectionImages} />
             <ProductGrid products={products} images={productImages} priceNote={priceNote} />
+            <PhotoBand image={asset(bandOne.imageKey, "band-01")} line={bandOne.line} height="85svh" />
             <Materials materials={materials} images={materialImages} />
-            <Craft craft={content.craft} images={[img("product-01-alt"), img("product-01")]} />
+            {/* Interim: `collection-01-b` stands in for `about-01` (a washed-out
+                beige sheet) until a crisper made-bed detail is sourced. */}
+            <Craft craft={content.craft} images={[asset("collection-01-b", "about-01")]} />
+            <PhotoBand image={asset(bandTwo.imageKey, "band-02")} line={bandTwo.line} height="85svh" />
             <SizeGuide rows={content.sizeGuide} />
             <Finder
               finder={content.finder}
@@ -203,6 +220,8 @@ export default function HomePage() {
             <Care items={content.care} />
           </main>
 
+          {/* Interim: `footer-01` (sunlit made bed) stands in for `footer-02`,
+              whose centre is a wall socket, until a serene bedroom is sourced. */}
           <Footer footer={footer} image={img("footer-01")} wordmark={brand.wordmark} />
         </ScrollVelocityProvider>
       </SmoothScroll>

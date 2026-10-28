@@ -134,7 +134,7 @@ export default function Hero({ image, headline, sub }: HeroProps) {
             trigger={trigger}
             delay={HEADLINE_DELAY}
             stagger={0.06}
-            className="font-display col-span-12 text-balance text-[clamp(44px,7vw,112px)] text-ink md:col-span-8 lg:col-span-7"
+            className="font-display col-span-12 text-balance text-[clamp(56px,8.5vw,136px)] text-ink md:col-span-8 lg:col-span-7"
           />
 
           <Reveal

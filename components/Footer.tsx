@@ -12,8 +12,9 @@
  * (checked, never assumed), keep the footer in normal flow — nothing here
  * depends on the variable being applied.
  *
- * The footer is taller than most viewports (≈1.6× at 1440×900, ≈850px at
- * 375×812) and a fixed element can only ever show one viewport of itself. So
+ * The footer is taller than every viewport (its photo strip alone is 70svh;
+ * ≈1.6× the viewport at both 1440×900 and 375×812) and a fixed element can
+ * only ever show one viewport of itself. So
  * while covered it is pinned near the viewport *top* (its lower part simply
  * hangs below the fold) and, once <main> has scrolled off it, the remaining
  * scroll translates it up 1:1 with the page, so it finishes in its natural
@@ -34,12 +35,15 @@
  * The strip is the one block the curtain exposes from the *bottom*, so its
  * gate opens on the first uncovered pixel and its wipe runs bottom-up
  * (`clipFrom="bottom"`), following the curtain edge instead of painting a
- * stone slab under it; it is full-bleed, so it takes no velocity skew (the
- * shear would tilt the photo against the viewport edges). Its parallax is
- * driven from the curtain's own progress (`stripProgress`, set in `update`):
- * a fixed element has no page position for ImageReveal's `useScroll` to track.
- * The wordmark animates on the same signal directly. Reduced motion: no
- * gating, and every primitive renders its final state.
+ * stone slab under it; it is full-bleed (AESTHETIC.md: `h-[70svh]`, edge to
+ * edge like PhotoBand, a `w-screen` box centred with `left-1/2
+ * -translate-x-1/2` inside an `overflow-x-clip` gate so it never widens the
+ * page), so it takes no velocity skew (the shear would tilt the photo against
+ * the viewport edges). Its parallax is driven from the curtain's own progress
+ * (`stripProgress`, set in `update`): a fixed element has no page position for
+ * ImageReveal's `useScroll` to track. The wordmark animates on the same signal
+ * directly. Reduced motion: no gating, and every primitive renders its final
+ * state.
  *
  * Focus. Browsers cannot scroll a fixed element into view, so focusing a link
  * that is still under the curtain scrolls the page until it is uncovered — and
@@ -68,8 +72,6 @@ import {
   useTransform,
 } from "motion/react";
 import type { ImageAsset, SiteContent } from "@/lib/types";
-// A pure predicate, not data: the copy itself still arrives through props.
-import { isPlaceholder } from "@/lib/content";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
 import { scrollToTarget } from "@/lib/scroll";
 import {
@@ -130,8 +132,24 @@ const IMAGE_REVEAL_MARGIN = 0.06;
  * IntersectionObserver needs, and the preloader / route panel cover it.
  */
 const MOUNT_HOLD_MS = 150;
-/** The strip drifts this fraction of its height across the curtain's lift. */
-const STRIP_PARALLAX = 0.06;
+/**
+ * The strip drifts this fraction of its height across the curtain's lift
+ * (±8%, the PhotoBand figure; the parallax layer carries 10% extra above and
+ * below the box so the drift never shows an edge), and `STRIP_SCALE_FROM` is
+ * the inner scale the wipe settles from (1.08, as on the bands: a 70svh photo
+ * zooming from 1.25 reads as a lurch).
+ */
+const STRIP_PARALLAX = 0.08;
+const STRIP_SCALE_FROM = 1.08;
+
+/**
+ * Mirrors `isPlaceholder` in lib/content (components never import that
+ * module: copy arrives through props, and this predicate is the only thing
+ * the footer needs from it). An unfilled owner value is "XXXXX" or wrapped in
+ * <angle brackets>; app/page.tsx already blanks those on the server, and this
+ * is the belt to its braces.
+ */
+const isPlaceholder = (v: string) => /X{3,}|<.*>/.test(v);
 
 const clamp = (value: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, value));
 
@@ -469,36 +487,51 @@ export default function Footer({ footer, image, wordmark }: FooterProps) {
       {/* Full-bleed photo strip above the enquiry line (see the header: wipe
           from the bottom, no skew, parallax from the curtain). The primitive's
           clip layer is overflow-hidden, so the oversized parallax layer never
-          bleeds. */}
-      <div key={gateKey("strip")} ref={gateRef.strip} data-curtain="strip" style={gateStyle("strip")}>
-        {/* 3:1 on phones (where the footer pins near the top and only its
-            lower part rests on screen), 21:9 from `sm`. */}
-        <ImageReveal
-          parallax={0}
-          skew={false}
-          clipFrom="bottom"
-          className="aspect-[3/1] w-full bg-stone sm:aspect-[21/9]"
-        >
-          <motion.div
-            className="absolute inset-x-0 -inset-y-[12%] will-change-transform"
-            style={live ? { y: stripY } : undefined}
+          bleeds vertically; the gate's `overflow-x-clip` (clip, not hidden: no
+          scroll container) swallows the half scrollbar-width a `w-screen` box
+          hangs past either edge on desktop, so the page never scrolls
+          sideways. The gate stays the measured block: its box is the strip's. */}
+      <div
+        key={gateKey("strip")}
+        ref={gateRef.strip}
+        data-curtain="strip"
+        style={gateStyle("strip")}
+        className="overflow-x-clip"
+      >
+        {/* The same edge-to-edge box as PhotoBand: viewport-wide, centred on
+            its parent, 70svh tall (`svh`, so the phone URL bar never resizes
+            it mid-scroll and `--footer-h` stays put). */}
+        <div className="relative left-1/2 w-screen -translate-x-1/2">
+          <ImageReveal
+            parallax={0}
+            skew={false}
+            scaleFrom={STRIP_SCALE_FROM}
+            clipFrom="bottom"
+            className="h-[70svh] w-full bg-stone"
           >
-            {/* The fixed footer's box is inside the viewport from the first
-                paint (under <main>), so the browser fetches this at once either
-                way; saying so keeps Next's LCP hint quiet. `fetchPriority="low"`
-                lets the hero's preload win the connection. */}
-            <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              loading="eager"
-              fetchPriority="low"
-              quality={80}
-              sizes="100vw"
-              className="object-cover"
-            />
-          </motion.div>
-        </ImageReveal>
+            <motion.div
+              className="absolute inset-x-0 -inset-y-[10%] will-change-transform"
+              style={live ? { y: stripY } : undefined}
+            >
+              {/* The fixed footer's box is inside the viewport from the first
+                  paint (under <main>), so the browser fetches this at once either
+                  way; saying so keeps Next's LCP hint quiet. `fetchPriority="low"`
+                  lets the hero's preload win the connection. `sizes="100vw"`: the
+                  box is exactly the viewport wide at every width. */}
+              <Image
+                src={image.src}
+                alt={image.alt}
+                fill
+                loading="eager"
+                fetchPriority="low"
+                quality={80}
+                sizes="100vw"
+                className="object-cover"
+                style={image.objectPosition ? { objectPosition: image.objectPosition } : undefined}
+              />
+            </motion.div>
+          </ImageReveal>
+        </div>
       </div>
 
       {/* Enquiry line + contact links. `scroll-mt` keeps the rule clear of the

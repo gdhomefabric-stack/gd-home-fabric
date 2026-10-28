@@ -8,6 +8,15 @@ import { useReducedMotionSafe } from "@/lib/reduced-motion";
 import { PROMO_TEXT, formatInr, promoApplies, usePromo } from "@/lib/offer";
 import ProductPlate from "@/components/ProductPlate";
 
+/**
+ * The range (AESTHETIC.md phase 3): two tall photo cards from `lg`, each a
+ * 4:5 photograph that wipes in and drifts a little on scroll. The drawn
+ * `ProductPlate` (every size to scale) no longer stands in for the photo:
+ * it sits on top of it as a small paper chip in the bottom-left corner, so
+ * the sizes stay in view while the photograph carries the card. A product
+ * without a photo keeps the plate as its main visual, as before.
+ */
+
 type ProductGridProps = {
   products: Product[];
   images: Record<string, ImageAsset>;
@@ -21,32 +30,27 @@ const BEST_FOR_LABEL: Record<Product["bestFor"][number], string> = {
   side: "Side sleepers",
 };
 
+/** AESTHETIC.md: the photographs are stock stand-ins; the real pillow is plain white. */
+const PHOTO_NOTE = "Representative photographs. The pillow is plain white.";
+
 /**
- * Cards are the full row on phones and half of it from `md`; content is
- * capped at 1440px so above that the slot is a fixed ~640px.
+ * Cards are the full row below `lg` and half of it from there; content is
+ * capped at 1440px so above that the slot is a fixed ~600px.
  */
-const CARD_SIZES = "(min-width: 1440px) 640px, (min-width: 768px) 50vw, 100vw";
+const CARD_SIZES = "(min-width: 1440px) 600px, (min-width: 1024px) 42vw, 100vw";
 
 /**
  * Card stagger (MOTION.md): 0.07s between cards. Each card reveals on its own
  * `useInView`, so the delay only needs to order the cards that enter together:
- * it restarts every grid row (2 cards from `md`, 1 below).
+ * it restarts every grid row (2 cards from `lg`, 1 below).
  */
 const CARD_STAGGER = 0.07;
-const WIDE_QUERY = "(min-width: 768px)";
+/** The chip settles once the photo's wipe is well under way. */
+const CHIP_DELAY = 0.5;
+const WIDE_QUERY = "(min-width: 1024px)";
 /** Pointer can hover: only then is the crossfade image worth downloading. */
 const HOVER_QUERY = "(hover: hover)";
 const CARDS_PER_ROW = { wide: 2, narrow: 1 } as const;
-
-/**
- * Keeps the first grid column clear for the fixed side index at `lg`, like the
- * Collections text column: one column of a 12-col grid plus its 24px gap is
- * width/12 + 2px (matches `col-start-2` from `xl`; at `lg` the index needs a
- * little more room). `min(100%, 1440px)` is the content wrapper's own width,
- * so the padding stays in step with Collections above 1440px too.
- */
-const INDEX_CLEAR =
-  "lg:pl-[calc(min(100%,1440px)/12_+_24px)] xl:pl-[calc(min(100%,1440px)/12_+_2px)]";
 
 /* -------------------------------------------------------------------------- */
 /* One size / pack / price row                                                 */
@@ -101,6 +105,39 @@ function VariantRow({ product, variant: v, promo }: VariantRowProps) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Size chip: the drawn plate, inset on the photograph                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * ≈140px paper card in the photo's bottom-left corner holding the plate's
+ * outlines. The plate's own captions are sized for a full card and would
+ * overflow a chip this small, so they are hidden here (they are decorative,
+ * `aria-hidden`; the plate's `role="img"` label still names every size) and a
+ * short caption row stands in for them. The chip lives beside the
+ * `ImageReveal`, not inside it, so it holds still while the photo scales,
+ * drifts and crossfades underneath.
+ */
+function SizeChip({ product, delay }: { product: Product; delay: number }) {
+  // The cover's plate is a single dashed outline: its badge is the caption.
+  // The pillow's plate nests every size at one corner, drawn to scale.
+  const caption = product.badge ?? "To scale";
+  return (
+    <Reveal
+      delay={delay}
+      y={12}
+      className="absolute bottom-3 left-3 w-[140px] border border-hairline bg-paper md:bottom-4 md:left-4"
+    >
+      <div className="relative aspect-[3/2]">
+        <ProductPlate product={product} className="bg-paper! [&_p]:hidden" />
+      </div>
+      <p aria-hidden="true" className="label border-t border-hairline px-2.5 py-2 text-stone-deep">
+        {caption}
+      </p>
+    </Reveal>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* Card                                                                        */
 /* -------------------------------------------------------------------------- */
 
@@ -108,22 +145,13 @@ type ProductCardProps = {
   product: Product;
   image: ImageAsset | undefined;
   hoverImage: ImageAsset | undefined;
-  priceNote: string;
   promo: boolean;
   reduceMotion: boolean;
   /** seconds; stagger offset shared by the card and its image wipe */
   delay: number;
 };
 
-function ProductCard({
-  product,
-  image,
-  hoverImage,
-  priceNote,
-  promo,
-  reduceMotion,
-  delay,
-}: ProductCardProps) {
+function ProductCard({ product, image, hoverImage, promo, reduceMotion, delay }: ProductCardProps) {
   const nameId = `product-${product.slug}-name`;
 
   return (
@@ -133,52 +161,62 @@ function ProductCard({
           every frame while muddying the wipe edge. */}
       <Reveal delay={delay} blur={false} className="h-full">
         <article aria-labelledby={nameId} className="flex h-full flex-col">
-          {/* The drawn plate holds still (no parallax), so its caption stays in frame. */}
-          <ImageReveal
-            skew={false}
-            parallax={image ? 0.04 : 0}
-            delay={delay}
-            className="aspect-[3/2] w-full bg-paper-deep"
-          >
-            <div
-              className={cn(
-                "absolute inset-0 will-change-transform",
-                !reduceMotion &&
-                  "transition-transform duration-[1200ms] ease-out-expo group-hover:scale-[1.04]",
-              )}
+          {/* `relative` so the size chip can sit on the photo without riding
+              the ImageReveal's scale and parallax layers. */}
+          <div className="relative">
+            {/* The drawn plate, when it is the main visual, holds still (no
+                parallax) so its caption stays in frame. */}
+            <ImageReveal
+              skew={false}
+              parallax={image ? 0.04 : 0}
+              delay={delay}
+              cursor={image ? "view" : undefined}
+              className="aspect-[4/5] w-full bg-paper-deep"
             >
-              {image ? (
-                <>
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    sizes={CARD_SIZES}
-                    className="object-cover"
-                    style={image.objectPosition ? { objectPosition: image.objectPosition } : undefined}
-                  />
-                  {hoverImage ? (
-                    // Purely decorative crossfade duplicate: empty alt, hidden from AT.
+              <div
+                className={cn(
+                  "absolute inset-0 will-change-transform",
+                  !reduceMotion &&
+                    "transition-transform duration-[1200ms] ease-out-expo group-hover:scale-[1.04]",
+                )}
+              >
+                {image ? (
+                  <>
                     <Image
-                      src={hoverImage.src}
-                      alt=""
-                      aria-hidden="true"
+                      src={image.src}
+                      alt={image.alt}
                       fill
                       sizes={CARD_SIZES}
-                      className="object-cover opacity-0 transition-opacity duration-[900ms] ease-in-out-soft group-hover:opacity-100"
+                      className="object-cover"
                       style={
-                        hoverImage.objectPosition
-                          ? { objectPosition: hoverImage.objectPosition }
-                          : undefined
+                        image.objectPosition ? { objectPosition: image.objectPosition } : undefined
                       }
                     />
-                  ) : null}
-                </>
-              ) : (
-                <ProductPlate product={product} />
-              )}
-            </div>
-          </ImageReveal>
+                    {hoverImage ? (
+                      // Purely decorative crossfade duplicate: empty alt, hidden from AT.
+                      <Image
+                        src={hoverImage.src}
+                        alt=""
+                        aria-hidden="true"
+                        fill
+                        sizes={CARD_SIZES}
+                        className="object-cover opacity-0 transition-opacity duration-[900ms] ease-in-out-soft group-hover:opacity-100"
+                        style={
+                          hoverImage.objectPosition
+                            ? { objectPosition: hoverImage.objectPosition }
+                            : undefined
+                        }
+                      />
+                    ) : null}
+                  </>
+                ) : (
+                  <ProductPlate product={product} />
+                )}
+              </div>
+            </ImageReveal>
+
+            {image ? <SizeChip product={product} delay={delay + CHIP_DELAY} /> : null}
+          </div>
 
           <div data-index-avoid className="mt-5 flex flex-1 flex-col">
             {product.badge ? (
@@ -217,8 +255,6 @@ function ProductCard({
             ) : (
               <p className="mt-5 text-[14px] text-ink-soft">See the price on Amazon.in</p>
             )}
-
-            <p className="label mt-4 text-stone-deep">{priceNote}</p>
           </div>
         </article>
       </Reveal>
@@ -248,13 +284,23 @@ export default function ProductGrid({ products, images, priceNote }: ProductGrid
 
   const count = products.length;
 
+  const cards = products.map((product) => ({
+    product,
+    image: product.imageKey ? (images[product.imageKey] as ImageAsset | undefined) : undefined,
+    hoverImage: product.imageHoverKey
+      ? (images[product.imageHoverKey] as ImageAsset | undefined)
+      : undefined,
+  }));
+  // The photo note only makes sense once a photograph is actually on the page.
+  const anyPhoto = cards.some((c) => c.image !== undefined);
+
   return (
     <section
       id="range"
       aria-labelledby="range-heading"
-      className="scroll-mt-16 bg-paper px-[var(--gutter)] pt-[clamp(40px,5vw,72px)] pb-[clamp(72px,10vw,140px)] text-ink md:scroll-mt-20"
+      className="scroll-mt-16 bg-paper px-[var(--gutter)] pt-[clamp(96px,12vw,200px)] pb-[clamp(72px,10vw,140px)] text-ink md:scroll-mt-20"
     >
-      <div className={cn("mx-auto w-full max-w-[1440px]", INDEX_CLEAR)}>
+      <div className="mx-auto w-full max-w-[1440px]">
         {/* `data-index-avoid`: the fixed side index fades while these pass under it. */}
         <div data-index-avoid>
           <Reveal className="rule flex items-baseline justify-between gap-4 pt-5">
@@ -275,30 +321,29 @@ export default function ProductGrid({ products, images, priceNote }: ProductGrid
 
         <ul
           role="list"
-          className="mt-10 grid grid-cols-1 gap-y-14 md:grid-cols-2 md:gap-x-6 lg:mt-16 lg:gap-x-10"
+          className="mt-10 grid grid-cols-1 gap-y-14 lg:mt-16 lg:grid-cols-2 lg:gap-x-8"
         >
-          {products.map((product, i) => {
-            const image = product.imageKey
-              ? (images[product.imageKey] as ImageAsset | undefined)
-              : undefined;
-            const hoverImage = product.imageHoverKey
-              ? (images[product.imageHoverKey] as ImageAsset | undefined)
-              : undefined;
-
-            return (
-              <ProductCard
-                key={product.slug}
-                product={product}
-                image={image}
-                hoverImage={canHover ? hoverImage : undefined}
-                priceNote={priceNote}
-                promo={promo}
-                reduceMotion={reduceMotion}
-                delay={(i % perRow) * CARD_STAGGER}
-              />
-            );
-          })}
+          {cards.map(({ product, image, hoverImage }, i) => (
+            <ProductCard
+              key={product.slug}
+              product={product}
+              image={image}
+              hoverImage={canHover ? hoverImage : undefined}
+              promo={promo}
+              reduceMotion={reduceMotion}
+              delay={(i % perRow) * CARD_STAGGER}
+            />
+          ))}
         </ul>
+
+        {/* One line under the grid (AESTHETIC.md): what the photographs are,
+            and the FACTS.md price note that every price block carries. */}
+        <div data-index-avoid>
+          <Reveal className="rule mt-12 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 pt-5 lg:mt-16">
+            {anyPhoto ? <p className="label text-stone-deep">{PHOTO_NOTE}</p> : null}
+            <p className="label text-stone-deep">{priceNote}</p>
+          </Reveal>
+        </div>
       </div>
     </section>
   );

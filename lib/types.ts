@@ -54,9 +54,11 @@ export type Product = {
   benefits: string[];
   variants: Variant[];
   /**
-   * Key into the images manifest. Left unset until the owner's own listing
-   * photos arrive: stock photography is never shown on a price-bearing card,
-   * so without it the card draws the product's outline to scale instead.
+   * Key into the images manifest for the card photo (AESTHETIC.md phase 3:
+   * a representative stock photograph; the card says so, and the drawn
+   * outline stays as an inset chip so the sizes remain visible). Unset, the
+   * card draws the product's outline to scale instead. The owner's own
+   * listing photos replace the stock keys once supplied.
    */
   imageKey?: string;
   /** optional hover image key */
@@ -74,8 +76,13 @@ export type Collection = {
   body: string;
   /** bullet list of 3–6 items shown under the body */
   items: string[];
-  /** image keys for the right-hand photo column, 2 per collection */
-  imageKeys: [string, string];
+  /**
+   * Image keys for the right-hand photo column, in display order: two or
+   * three per collection (AESTHETIC.md: `collection-<index>-a`, `-b` and an
+   * optional `-c`). A key the manifest does not carry is skipped by the
+   * component, never a crash.
+   */
+  imageKeys: string[];
   /** product slugs that belong here */
   productSlugs: string[];
 };
@@ -86,6 +93,13 @@ export type Material = {
   /** one line, e.g. "Dense pile, deep colour, soft hand." */
   note: string;
   imageKey: string;
+};
+
+export type PhotoBand = {
+  /** key into the images manifest (`band-01`, `band-02`) */
+  imageKey: string;
+  /** one serif line, bottom-left of the photo */
+  line: string;
 };
 
 export type Faq = { q: string; a: string };
@@ -115,6 +129,16 @@ export type SiteContent = {
     cta: { label: string; href: string };
   };
   collections: Collection[];
+  /**
+   * AESTHETIC.md: the full-viewport band right after the hero. `text` is one
+   * paragraph of at most 45 words, every one traceable to FACTS.md.
+   */
+  manifesto: { eyebrow: string; text: string };
+  /**
+   * AESTHETIC.md: the two full-bleed photo bands, in page order (after the
+   * range, and after About). `line` is one serif sentence from FACTS.md.
+   */
+  bands: [PhotoBand, PhotoBand];
   products: Product[];
   materials: Material[];
   craft: {

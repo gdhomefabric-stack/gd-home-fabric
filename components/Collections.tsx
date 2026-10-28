@@ -4,21 +4,33 @@
  * Collections — `<section id="collection">`.
  *
  * An editorial intro line followed by one `CollectionSection` per collection
- * (`#collection-<slug>`). On ≥lg the text sits in grid columns 3–6 (`lg`) or
- * 2–5 (`xl`) — the leading column(s) are kept clear for the fixed, labelled
- * side index, which needs two columns' width between 1024 and 1279px — and
- * stays sticky while two photos (cols 7–12) stack and drift against the
- * scroll. Below lg the text stacks with a compact rhythm and the two photos
- * share one row (side by side): stacked full-width they alone were ~950px of
- * scrolling per collection on a phone, both linking to the same `#range`.
+ * (`#collection-<slug>`). Phase 3 (AESTHETIC.md): the photographs dominate.
+ *
+ * Layout ≥lg: the text sits in grid columns 3–6 (`lg`) or 2–5 (`xl`), the
+ * leading column(s) kept clear for the fixed, labelled side index (which needs
+ * two columns' width between 1024 and 1279px), and stays sticky while the
+ * photo column (cols 7–12) runs past the gutter to the right viewport edge.
+ * The photos stack back to back (8px gaps), each nearly a viewport tall
+ * (`min(92svh, 1100px)`), so consecutive collections read as one continuous
+ * strip of photography beside a narrow cream text column. The bleed is a
+ * negative right margin on the column, clipped by the outer section's
+ * `overflow-x-clip` (clip, not hidden: it must not become a scroll container,
+ * or the sticky text would stop sticking and the page could scroll sideways).
+ *
+ * Layout <lg: the text stacks first, then the photos full-bleed
+ * (`-mx-[var(--gutter)]`) at `70svh`, 8px apart. Only the first two show
+ * there (`hidden lg:block` on the third): three 70svh photos back to back
+ * would be a 210svh wall with the copy long scrolled away, and a
+ * `display:none` lazy image is never fetched, so phones skip those bytes.
+ *
+ * Photos: two or three per collection (`imageKeys`, in order). A key missing
+ * from the `images` map is skipped, never a crash and never an empty box.
  *
  * Motion (shared primitives from `@/lib/motion`, see MOTION.md):
- * - Titles: `TextReveal` word masks. The h3 observes itself — an unclipped,
- *   full-height box with a vertical-only viewport margin — so it fires at every
- *   width. The previous build drove the whole text block from one parent
- *   `whileInView` with a `clip-path` wipe on the heading; every element now
- *   carries its own trigger, so no title can be left hidden by a wrapper that
- *   never fired or by a clipped observation rect.
+ * - Titles: `TextReveal` word masks. The h3 observes itself, an unclipped,
+ *   full-height box with a vertical-only viewport margin, so it fires at every
+ *   width. Every element carries its own trigger, so no title can be left
+ *   hidden by a wrapper that never fired or by a clipped observation rect.
  * - Body, list rows and the CTA: `Reveal` (fade-up + blur-in) in 0.1s delay
  *   steps, capped at 0.4s. The list rows are triggered by the `<ul>` entering
  *   view, not each by itself: a row that lands in the bottom 10% of the
@@ -27,11 +39,13 @@
  *   block enters as one (≥lg), and from the first row on the stacked layout.
  *   The `(N).` index and the "N items" label slide in from the left
  *   (`x -16 → 0`, opacity) once their row is in view.
- * - Photos: `ImageReveal` clip wipe + inner scale + scroll parallax (`0.1` for
- *   the upper photo, `0.06` for the lower) + scroll-velocity skew, with
- *   `data-cursor="view"` for the custom cursor. Hover scales the photo 1.04 / 1.2s.
- *   Each photo is a real `#range` link ("View <title> in the range"), so the
- *   "View" cursor leads somewhere: the same glide as "See sizes and prices".
+ * - Photos: `ImageReveal` clip wipe + inner scale + scroll parallax (0.08) +
+ *   scroll-velocity skew, with `data-cursor="view"` for the custom cursor.
+ *   Hover scales the photo 1.04 / 1.2s. Each photo is a real `#range` link
+ *   ("View <title> in the range"), so the "View" cursor leads somewhere: the
+ *   same glide as "See sizes and prices". The skew is a vertical shear and the
+ *   parallax is vertical, both inside the reveal's own overflow-hidden box, so
+ *   neither can widen the page.
  * - Text column (≥lg): opacity 1 → 0.25 and y 0 → -24px (through `SPRING_SOFT`)
  *   as the sticky block is pushed out by the end of its grid row. The fade is
  *   keyed to the *measured* push point (sticky top + block height + bottom
@@ -46,11 +60,25 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { motion, useInView, useScroll, useSpring, useTransform } from "motion/react";
+import type Lenis from "lenis";
 import type { Collection, ImageAsset } from "@/lib/types";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
 import { useMediaQuery } from "@/lib/media";
 import { replaceHash, scrollToTarget } from "@/lib/scroll";
-import { EASE_OUT_EXPO, ImageReveal, Reveal, SPRING_SOFT, TextReveal } from "@/lib/motion";
+import { cn, EASE_OUT_EXPO, ImageReveal, Reveal, SPRING_SOFT, TextReveal } from "@/lib/motion";
+
+declare global {
+  interface Window {
+    /**
+     * Owned and assigned by `components/SmoothScroll.tsx`. Repeated here with
+     * the identical type (as `SideIndex.tsx` does) so `lib/scroll`, which
+     * reads it for the `#range` glide, typechecks when this component is
+     * compiled on its own; interface merging accepts the duplicate because
+     * the types match.
+     */
+    __lenis?: Lenis;
+  }
+}
 
 type CollectionsProps = {
   intro: string;
@@ -86,8 +114,54 @@ const DEFAULT_PUSH_AT = 900;
 /** Tailwind `lg`: the grid and the sticky column only exist from here. */
 const WIDE_QUERY = "(min-width: 1024px)";
 
-/** Responsive `sizes` for the photo column: cols 7–12 of a 1440px grid at ≥lg, half width (two across) below. */
-const PHOTO_SIZES = "(min-width: 1440px) 640px, (min-width: 1024px) 46vw, 50vw";
+/** Scroll parallax for every column photo (AESTHETIC.md: 0.08, skew on). */
+const PHOTO_PARALLAX = 0.08;
+
+/**
+ * Responsive `sizes` for a portrait photo, which `object-cover` fits to the
+ * column's width. From `lg` the column is grid columns 7–12 plus the bleed to
+ * the right viewport edge, which works out at ~49vw at every width from
+ * 1024px up (the container is capped at 1440px but the bleed grows with the
+ * viewport); below `lg` each photo is full-bleed.
+ */
+const PORTRAIT_SIZES = "(min-width: 1024px) 50vw, 100vw";
+
+/**
+ * A landscape photo in the tall box is fitted by *height* instead, so the
+ * pixels it needs are the box height times its aspect: about the viewport's
+ * width from `lg` (92svh at 3:2 on a 16:10 screen) and well over it on a
+ * phone (70svh of a tall screen). A width-only `sizes` would fetch a 750px
+ * variant and stretch it 1.6x across an 828px box.
+ */
+const LANDSCAPE_SIZES = "(min-width: 1024px) 100vw, 160vw";
+
+/** The `sizes` that keep a cover-fitted photo sharp for its orientation. */
+const photoSizes = (asset: ImageAsset): string =>
+  asset.width > asset.height ? LANDSCAPE_SIZES : PORTRAIT_SIZES;
+
+/**
+ * Photo boxes: full-bleed and 70svh below `lg`; from `lg` nearly a viewport
+ * tall, capped so a very tall monitor does not get a 1600px photo. The paper
+ * tone shows through the 1.3s clip wipe.
+ */
+const PHOTO_BOX_CLASS = "bg-paper-deep h-[70svh] lg:h-[min(92svh,1100px)]";
+
+/**
+ * Below `lg` the photo escapes the container's gutter on both sides; from `lg`
+ * the column itself carries the bleed (see `PHOTO_COLUMN_BLEED`).
+ */
+const PHOTO_FIGURE_CLASS = "-mx-[var(--gutter)] lg:mx-0";
+
+/**
+ * From `lg` the photo column (grid cols 7–12) bleeds to the right viewport
+ * edge: past the container's gutter, and, on viewports wider than the 1440px
+ * container, past the centred container's own margin as well
+ * (`(100vw - 1440px) / 2`, never negative). The grid item stretches, so a
+ * negative right margin widens its box rather than shifting it. On a browser
+ * with a layout scrollbar `100vw` overshoots by the bar's width; the section's
+ * `overflow-x-clip` swallows that.
+ */
+const PHOTO_COLUMN_BLEED = "lg:mr-[calc(-1*(max(0px,(100vw_-_1440px)/2)+var(--gutter)))]";
 
 /** The `(N).` index and the "N items" label slide in from the left. */
 const SLIDE_HIDDEN = { x: -16, opacity: 0 } as const;
@@ -127,6 +201,22 @@ function formatIndex(index: string): string {
   return `(${Number.isFinite(n) ? n : index}).`;
 }
 
+type Photo = { key: string; asset: ImageAsset };
+
+/**
+ * The collection's photos in `imageKeys` order, dropping any key the manifest
+ * does not carry (the integrator only passes the entries it has; a missing
+ * file must not break the section or leave a blank box).
+ */
+function resolvePhotos(keys: readonly string[], images: Record<string, ImageAsset>): Photo[] {
+  const photos: Photo[] = [];
+  for (const key of keys) {
+    const asset = images[key];
+    if (asset) photos.push({ key, asset });
+  }
+  return photos;
+}
+
 /* -------------------------------------------------------------------------- */
 /*  Collections                                                               */
 /* -------------------------------------------------------------------------- */
@@ -142,10 +232,14 @@ export default function Collections({ intro, collections, images }: CollectionsP
     <section
       id="collection"
       aria-labelledby="collections-heading"
-      className="relative scroll-mt-16 bg-paper text-ink md:scroll-mt-20"
+      // `overflow-x-clip` (not hidden): the photo column's right bleed and the
+      // sub-lg full-bleed photos end at the viewport edge, and anything past it
+      // (a layout scrollbar's width) is clipped without a scroll container, so
+      // the sticky text column keeps sticking to the window.
+      className="relative overflow-x-clip scroll-mt-16 bg-paper text-ink md:scroll-mt-20"
     >
       {/* Intro */}
-      <div className="mx-auto max-w-[1440px] px-[var(--gutter)] pt-[10vh] pb-[4vh] lg:pt-[20vh] lg:pb-[8vh]">
+      <div className="mx-auto max-w-[1440px] px-[var(--gutter)] pt-[clamp(96px,12vw,200px)] pb-[clamp(24px,3vw,48px)]">
         <div className="lg:grid lg:grid-cols-12 lg:gap-x-6">
           {/* `data-index-avoid`: the fixed side index fades while this passes under it. */}
           <div data-index-avoid className="lg:col-span-12">
@@ -161,7 +255,7 @@ export default function Collections({ intro, collections, images }: CollectionsP
             as="p"
             text={intro}
             delay={STEP}
-            className="font-display mt-10 text-balance text-[clamp(32px,4vw,56px)] lg:col-span-9 lg:col-start-3 lg:mt-16 xl:col-start-2"
+            className="font-display mt-8 text-balance text-[clamp(22px,2.2vw,32px)] lg:col-span-8 lg:col-start-3 lg:mt-10 xl:col-start-2"
           />
         </div>
       </div>
@@ -264,7 +358,7 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
     transition: reduce ? { duration: 0 } : { duration: 1, delay, ease: EASE_OUT_EXPO },
   });
 
-  // "See sizes and prices" and both photos lead to the range: plain `#range`
+  // "See sizes and prices" and every photo lead to the range: plain `#range`
   // anchors, upgraded to the shared glide (`lib/scroll`) when JS is on. The
   // photos carry the "View" cursor, so they have to go somewhere; they are
   // named for the collection they show.
@@ -277,9 +371,7 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
   };
   const viewLabel = `View ${collection.title} in the range`;
 
-  const [keyA, keyB] = collection.imageKeys;
-  const photoA = images[keyA];
-  const photoB = images[keyB];
+  const photos = resolvePhotos(collection.imageKeys, images);
   const productCount = collection.productSlugs.length;
   const itemCount = collection.items.length;
 
@@ -304,7 +396,13 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
       aria-labelledby={headingId}
       className="relative scroll-mt-16 md:scroll-mt-20"
     >
-      <div className="mx-auto max-w-[1440px] px-[var(--gutter)] pt-[clamp(32px,5vh,56px)] pb-[clamp(56px,8vh,96px)] lg:grid lg:grid-cols-12 lg:gap-x-6 lg:pt-[10vh] lg:pb-[16vh]">
+      {/* Almost no cream between collections: from `lg` the row ends 8px
+          (`pb-2`, the same as the photo gap) before the next collection's
+          first photo, and starts flush so its text sits level with the top of
+          its first photo until the sticky offset takes over. Below `lg` the
+          text block gets its own breathing space above and the photos end the
+          section flush. */}
+      <div className="mx-auto max-w-[1440px] px-[var(--gutter)] pt-[clamp(48px,7vh,72px)] lg:grid lg:grid-cols-12 lg:gap-x-6 lg:pt-0 lg:pb-2">
         {/* Text column (see the header: one column further in at `lg` so the
             labelled side index has room; back to column 2 from `xl`). */}
         <div ref={columnRef} className="lg:col-span-4 lg:col-start-3 xl:col-start-2">
@@ -373,45 +471,38 @@ function CollectionSection({ collection, images, reduce, wide }: CollectionSecti
           </div>
         </div>
 
-        {/* Photo column: two across below `lg`, stacked with an offset from
-            `lg`. ImageReveal's skew is a vertical shear and its parallax is
-            vertical, both inside its own overflow-hidden box, so nothing can
-            widen the page. */}
-        <div className="mt-12 grid grid-cols-2 items-start gap-3 lg:col-span-6 lg:col-start-7 lg:mt-0 lg:block">
-          {photoA ? (
-            <figure className="lg:w-[88%]">
-              <a href="#range" onClick={goToRange} aria-label={viewLabel} className={PHOTO_LINK_CLASS}>
-                <ImageReveal parallax={0.1} cursor="view" className="aspect-[4/5] bg-paper-deep">
-                  <Image
-                    src={photoA.src}
-                    alt={photoA.alt}
-                    fill
-                    sizes={PHOTO_SIZES}
-                    className={PHOTO_IMG_CLASS}
-                    style={photoA.objectPosition ? { objectPosition: photoA.objectPosition } : undefined}
-                  />
-                </ImageReveal>
-              </a>
-            </figure>
-          ) : null}
-
-          {photoB ? (
-            <figure className="lg:mt-[20vh] lg:ml-auto lg:w-[88%]">
-              <a href="#range" onClick={goToRange} aria-label={viewLabel} className={PHOTO_LINK_CLASS}>
-                <ImageReveal parallax={0.06} cursor="view" className="aspect-[3/4] bg-paper-deep">
-                  <Image
-                    src={photoB.src}
-                    alt={photoB.alt}
-                    fill
-                    sizes={PHOTO_SIZES}
-                    className={PHOTO_IMG_CLASS}
-                    style={photoB.objectPosition ? { objectPosition: photoB.objectPosition } : undefined}
-                  />
-                </ImageReveal>
-              </a>
-            </figure>
-          ) : null}
-        </div>
+        {/* Photo column: the photos stack back to back, 8px apart. Full-bleed
+            below `lg`; from `lg` grid cols 7–12 bleeding to the right viewport
+            edge. The grid item stretches to the row, so the sticky text column
+            opposite has the whole stack's height to travel. */}
+        {photos.length > 0 ? (
+          <div
+            className={cn(
+              "mt-10 flex flex-col gap-2 lg:col-span-6 lg:col-start-7 lg:mt-0",
+              PHOTO_COLUMN_BLEED,
+            )}
+          >
+            {photos.map(({ key, asset }, i) => (
+              <figure
+                key={`${key}-${i}`}
+                className={cn(PHOTO_FIGURE_CLASS, i >= 2 && "hidden lg:block")}
+              >
+                <a href="#range" onClick={goToRange} aria-label={viewLabel} className={PHOTO_LINK_CLASS}>
+                  <ImageReveal parallax={PHOTO_PARALLAX} cursor="view" className={PHOTO_BOX_CLASS}>
+                    <Image
+                      src={asset.src}
+                      alt={asset.alt}
+                      fill
+                      sizes={photoSizes(asset)}
+                      className={PHOTO_IMG_CLASS}
+                      style={asset.objectPosition ? { objectPosition: asset.objectPosition } : undefined}
+                    />
+                  </ImageReveal>
+                </a>
+              </figure>
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );

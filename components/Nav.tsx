@@ -87,8 +87,9 @@ export default function Nav({ wordmark, menu, cta }: NavProps) {
        same treatment even when nothing announced it. A direction flip
        upward always brings the bar back; real wheel / touch scrolling
        down still hides it.
-     - Once scrolled past the first viewport (the hero photo) the bar
-       stops blending and becomes a blurred paper strip with ink text.
+     - The bar blends (`mix-blend-difference`) at every scroll position:
+       white over photos, ink over paper. Past the first viewport it only
+       becomes clickable as a whole (`pointer-events-auto`).
      ------------------------------------------------------------------ */
   const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
@@ -282,27 +283,24 @@ export default function Nav({ wordmark, menu, cta }: NavProps) {
   return (
     <>
       {/* ------------------------------------------------------------
-          Fixed bar. Over the hero it is `text-white mix-blend-difference`
-          so it inverts over the photo; past the first viewport the blend
-          is dropped for a blurred `bg-paper/70` strip with ink text (the
-          colour switch is instant on purpose — a tweened white→ink would
-          flash white on paper). The blend lives on <header> and nothing
-          else is rendered inside it, so the overlay below never breaks it.
+          Fixed bar. `text-white mix-blend-difference` at every scroll
+          position: it inverts over photos and renders as ink over paper
+          (no paper strip, no blur: a translucent bar would wash a cream
+          band over every full-bleed photo). The blend lives on <header>
+          and nothing else is rendered inside it, so the overlay below
+          never breaks it.
           `initial` is identical on server and client (hydration-safe);
           reduced motion simply snaps to the shown state.
           ------------------------------------------------------------ */}
       <header
         className={cn(
           "pointer-events-none fixed inset-x-0 top-0 z-50",
-          pastHero ? "text-ink" : "text-white mix-blend-difference",
+          "text-white mix-blend-difference",
         )}
         onFocusCapture={() => setHidden(false)}
       >
         <motion.div
-          className={cn(
-            "transition-[background-color,backdrop-filter] duration-500 ease-out",
-            pastHero && "pointer-events-auto bg-paper/70 backdrop-blur",
-          )}
+          className={cn(pastHero && "pointer-events-auto")}
           initial={{ opacity: 0, y: "-15%" }}
           animate={
             !barShown

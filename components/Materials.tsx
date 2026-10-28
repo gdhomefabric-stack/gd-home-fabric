@@ -41,7 +41,8 @@ const MAX_FRAME_MS = 64;
 /**
  * Each half of the track repeats the list until it holds at least this many
  * cards, so on very wide screens the loop never exposes empty track.
- * With cards capped at 340px this covers viewports up to ~2900px.
+ * With cards capped at 480px (plus the 24px gap) one half is at least
+ * ~4000px wide, which covers every viewport the card clamp is sized for.
  */
 const MIN_CARDS_PER_HALF = 8;
 
@@ -159,7 +160,7 @@ export default function Materials({ materials, images }: MaterialsProps) {
   return (
     <section
       id="materials"
-      className="relative w-full scroll-mt-16 overflow-hidden bg-paper pt-[clamp(40px,5vw,72px)] pb-[clamp(72px,10vw,140px)] md:scroll-mt-20"
+      className="relative w-full scroll-mt-16 overflow-hidden bg-paper py-[clamp(96px,12vw,200px)] md:scroll-mt-20"
     >
       {/* Heading, left-aligned inside the gutter */}
       <div className="px-[var(--gutter)]">
@@ -176,7 +177,7 @@ export default function Materials({ materials, images }: MaterialsProps) {
               as="h2"
               text="Materials"
               delay={0.08}
-              className="font-display text-balance text-[clamp(32px,4vw,56px)] text-ink"
+              className="font-display text-balance text-[clamp(40px,5vw,72px)] text-ink"
             />
           </div>
           <Reveal delay={0.16}>
@@ -258,7 +259,7 @@ function SwatchCard({ material, image, index, primary, skewX }: SwatchCardProps)
   return (
     <motion.li
       className={cn(
-        "group w-[clamp(220px,62vw,340px)] shrink-0",
+        "group w-[clamp(300px,34vw,480px)] shrink-0",
         skewX !== undefined && "will-change-transform",
       )}
       style={skewX ? { skewX } : undefined}
@@ -271,7 +272,7 @@ function SwatchCard({ material, image, index, primary, skewX }: SwatchCardProps)
               src={image.src}
               alt={image.alt}
               fill
-              sizes="(min-width: 560px) 340px, 62vw"
+              sizes="(min-width: 1412px) 480px, (min-width: 883px) 34vw, 300px"
               quality={82}
               draggable={false}
               className="object-cover transition-transform duration-[1200ms] ease-[var(--ease-out-expo)] group-hover:scale-[1.04]"

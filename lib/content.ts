@@ -61,38 +61,111 @@ export const content: SiteContent = {
     cta: { label: "Shop on Amazon.in", href: CONTACT.amazonStore },
   },
 
+  // Five numbered sections, one per fact group in FACTS.md. The photo column
+  // reads `imageKeys` in order (a, b and the optional c of that section's set).
   collections: [
     {
       index: "01",
       slug: "goose-feather-pillow",
       title: "Goose Feather Pillow",
       body:
-        "Goose feather fill in a 500 thread count pure cotton shell. The tight downproof weave keeps the feather in and lets air move through, and cotton breathes in a way polyester does not. Soft enough to sink into, dense enough to hold the head level, it suits back and side sleepers, and people who find memory foam too firm or fibre pillows too flat. The feather moves with you and springs back: shake the pillow each morning to restore full loft.",
+        "Goose feather fill, in a white, plain, rectangular bed pillow. The feather moves with you and springs back. The pillow is soft enough to sink into and dense enough to hold the head level. It suits back and side sleepers, and people who find memory foam too firm or fibre pillows too flat. Sold only on Amazon.in, in Standard, Queen and King.",
       items: [
         "Goose feather fill",
-        "500 thread count pure cotton, downproof weave",
-        "Standard 17 × 27 in, pack of 1 or pack of 2",
-        "Queen 20 × 30 in, pack of 2 only",
-        "King 20 × 36 in, pack of 1 or pack of 2",
+        "Soft enough to sink into, dense enough to hold the head level",
+        "Suits back and side sleepers",
+        "For people who find memory foam too firm or fibre pillows too flat",
+        "White, plain, rectangular",
       ],
-      imageKeys: ["collection-01-a", "collection-01-b"],
+      imageKeys: ["collection-01-a", "collection-01-b", "collection-01-c"],
       productSlugs: ["goose-feather-pillow"],
     },
     {
       index: "02",
-      slug: "pillow-cover",
-      title: "Pillow Cover",
+      slug: "cotton-shell",
+      title: "The cotton shell",
       body:
-        "Cover only: no pillow and no filling inside. One empty, plain white pillowcase in 300 thread count cotton, made for standard 17 × 27 in pillows, including the GD Home Fabric Standard pillow. Check your pillow cover size before ordering: too tight flattens the loft, too loose lets it shift. Always use a pillow cover on a feather pillow, and follow the care label.",
+        "The shell is 500 thread count pure cotton, in a tight downproof weave that keeps the feather in and lets air move through. Cotton breathes in a way polyester does not. Always use a pillow cover over it, and check the cover size before ordering: too tight flattens the loft, too loose lets it shift. Dry clean is recommended; spot clean small marks with a damp cloth.",
+      items: [
+        "500 thread count pure cotton",
+        "Tight downproof weave keeps the feather in",
+        "Lets air move through: cotton breathes in a way polyester does not",
+        "Always use a pillow cover",
+      ],
+      // The soft-focus `-a` sits last so the sharp photos lead.
+      imageKeys: ["collection-02-b", "collection-02-c", "collection-02-a"],
+      productSlugs: ["goose-feather-pillow"],
+    },
+    {
+      index: "03",
+      slug: "three-sizes",
+      title: "Three sizes",
+      body:
+        "One pillow, three sizes. Standard is 17 × 27 in (43 × 69 cm), in a pack of 1 or a pack of 2. Queen is 20 × 30 in (51 × 76 cm) and is sold as a pair only; there is no Queen single. King is 20 × 36 in (51 × 91 cm), in a pack of 1 or a pack of 2. Check your pillow cover size before ordering: too tight flattens the loft, too loose lets it shift.",
+      items: [
+        "Standard 17 × 27 in, pack of 1 or pack of 2",
+        "Queen 20 × 30 in, pack of 2 only",
+        "King 20 × 36 in, pack of 1 or pack of 2",
+        "Check your pillow cover size before ordering",
+      ],
+      // `collection-03-c` is the interim band-01 photo (see `bands`), so it
+      // is not repeated here.
+      imageKeys: ["collection-03-a", "collection-03-b"],
+      productSlugs: ["goose-feather-pillow"],
+    },
+    {
+      index: "04",
+      slug: "vacuum-packed",
+      title: "Vacuum packed",
+      body:
+        "The pillow arrives vacuum packed. Allow 24 to 48 hours after unpacking for it to reach full loft, then shake it each morning: the feather moves with you and springs back. Dry clean is recommended. Spot clean small marks with a damp cloth, and do not machine wash or wring the pillow, which clumps the feather. Air it in shade every few weeks, and always use a pillow cover.",
+      items: [
+        "Allow 24 to 48 hours to reach full loft",
+        "Shake each morning",
+        "Dry clean recommended; spot clean with a damp cloth",
+        "Do not machine wash or wring",
+        "Air in shade every few weeks",
+      ],
+      // `collection-04-c` (sheets drying in full sun) contradicts "air in
+      // shade" and shows a product not in FACTS.md; dropped until replaced.
+      imageKeys: ["collection-04-a", "collection-04-b"],
+      productSlugs: ["goose-feather-pillow"],
+    },
+    {
+      index: "05",
+      slug: "pillow-cover",
+      title: "The cover, on its own",
+      body:
+        "Cover only: no pillow and no filling inside. One empty pillowcase in plain, 300 thread count white cotton, made for standard 17 × 27 in pillows, including the GD Home Fabric Standard pillow. It is ₹100 on Amazon.in, the price on 26 Oct 2026; Amazon shows the current price. Always use a pillow cover on a feather pillow, and follow the care label.",
       items: [
         "Cover only, no filling inside",
         "300 thread count white cotton, plain",
         "Made for 17 × 27 in pillows",
+        "₹100 on Amazon.in",
         "Follow the care label",
       ],
-      imageKeys: ["product-03", "product-04-alt"],
+      // `collection-05-c` is the interim band-02 photo (see `bands`), so it
+      // is not repeated here.
+      imageKeys: ["collection-05-a", "collection-05-b"],
       productSlugs: ["pillow-cover"],
     },
+  ],
+
+  // AESTHETIC.md: the dark band after the hero. 41 words, each from FACTS.md
+  // (no making or quality claim; "6+ years" in the form FACTS.md prescribes).
+  manifesto: {
+    eyebrow: "GD Home Fabric",
+    text:
+      "A pillow is a simple thing. Goose feather, held in a 500 thread count pure cotton shell that keeps the feather in and lets the air through. Three sizes. Sold on Amazon.in, where GD Home Fabric has been for 6+ years.",
+  },
+
+  // AESTHETIC.md: the two full-bleed photo bands, in page order. Interim
+  // photos: `band-01` (sun hot-spot, hotel headboard) and `band-02` (hard
+  // black-and-white light) are swapped for calm colour photos already on
+  // disk until wide, evenly lit replacements are sourced.
+  bands: [
+    { imageKey: "collection-03-c", line: "Vacuum packed. Allow 24 to 48 hours for full loft." },
+    { imageKey: "collection-05-c", line: "Three sizes. Standard, Queen and King." },
   ],
 
   // Prices are the Amazon.in selling prices on 26 Oct 2026 (FACTS.md). The
@@ -157,6 +230,12 @@ export const content: SiteContent = {
           amazonUrl: "https://www.amazon.in/dp/B0HJGZZF4N",
         },
       ],
+      // AESTHETIC.md phase 3: representative stock photographs on the card
+      // (the grid says so); the owner's listing photos replace them. Interim:
+      // a plain white pillow (`collection-05-a`) rather than `product-01`,
+      // whose pillowcase has an embroidered hem on an unmade bed.
+      imageKey: "collection-05-a",
+      imageHoverKey: "product-01-alt",
       bestFor: ["back", "side"],
     },
     {
@@ -182,6 +261,9 @@ export const content: SiteContent = {
           amazonUrl: "https://www.amazon.in/dp/B0FJ2RHP1Z",
         },
       ],
+      // Interim: folded white cotton (`collection-04-a`) rather than
+      // `cover-01`, which reads as creased paper at card size.
+      imageKey: "collection-04-a",
       bestFor: [],
     },
   ],
