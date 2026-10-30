@@ -102,6 +102,15 @@ export type PhotoBand = {
   line: string;
 };
 
+export type HeroVideo = {
+  /** Public path of the desktop MP4 (H.264), e.g. "/video/brand-1080.mp4" */
+  src: string;
+  /** Lighter MP4 for phones, e.g. "/video/brand-720.mp4" */
+  mobileSrc?: string;
+  /** Still frame shown before playback and when autoplay is off */
+  poster: string;
+};
+
 export type Faq = { q: string; a: string };
 
 export type SizeRow = {
@@ -122,6 +131,11 @@ export type SiteContent = {
     heroHeadline: string;
     heroSub: string;
     introLine: string;
+    /**
+     * Full-screen brand film behind the hero headline. Unset, the hero shows
+     * the still photo. `mobileSrc` is a lighter rendition served below 768px.
+     */
+    heroVideo?: HeroVideo;
   };
   nav: {
     index: Array<{ id: string; label: string }>;

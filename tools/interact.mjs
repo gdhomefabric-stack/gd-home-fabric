@@ -95,7 +95,7 @@ async function hoverCentre(locator, label) {
   return true;
 }
 
-await page.goto(url, { waitUntil: "networkidle", timeout: 90_000 });
+await page.goto(url, { waitUntil: "load", timeout: 90_000 });
 await page
   .waitForFunction(() => document.documentElement.dataset.ready === "true", null, { timeout: 6_000 })
   .catch(() => logs.push("note: data-ready never set within 6s"));

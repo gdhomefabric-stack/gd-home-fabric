@@ -222,7 +222,7 @@ export default function HomePage() {
 
             <main id="top" className="relative z-10 bg-paper mb-[var(--footer-h,0px)]">
               <ScrollTint>
-                <Hero image={img("hero")} headline={brand.heroHeadline} sub={brand.heroSub} />
+                <Hero image={img("hero")} video={brand.heroVideo} headline={brand.heroHeadline} sub={brand.heroSub} />
                 <Manifesto image={img("manifesto")} eyebrow={manifesto.eyebrow} text={manifesto.text} />
                 <Collections intro={brand.introLine} collections={collections} images={collectionImages} />
                 <ProductGrid products={products} images={productImages} priceNote={priceNote} />

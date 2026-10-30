@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
-import type { ImageAsset } from "@/lib/types";
+import type { HeroVideo as HeroVideoSource, ImageAsset } from "@/lib/types";
+import HeroVideo from "@/components/HeroVideo";
 import { useReducedMotionSafe } from "@/lib/reduced-motion";
 import {
   EASE_IN_OUT,
@@ -17,6 +18,8 @@ import {
 
 type HeroProps = {
   image: ImageAsset;
+  /** When set, the brand film replaces the photo (no blur, no Ken Burns). */
+  video?: HeroVideoSource;
   headline: string;
   sub: string;
 };
@@ -64,7 +67,7 @@ const HINT_DELAY = 0.9;
  */
 const READY_FALLBACK_MS = 4000;
 
-export default function Hero({ image, headline, sub }: HeroProps) {
+export default function Hero({ image, video, headline, sub }: HeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   // Hydration-safe: `false` on the server and during hydration, then the real
   // preference. The scroll hint below renders different markup under reduced
@@ -115,6 +118,14 @@ export default function Hero({ image, headline, sub }: HeroProps) {
       ref={sectionRef}
       className="relative h-svh min-h-[560px] w-full overflow-hidden bg-stone"
     >
+      {video ? (
+        // Brand film: full-bleed, sharp from the first frame; only the gentle
+        // parallax remains so the hero still leaves the screen softly.
+        <motion.div className="absolute inset-0 will-change-transform" style={{ y: imageY }}>
+          <HeroVideo video={video} label={`${image.alt}. GD Home Fabric brand film.`} />
+        </motion.div>
+      ) : (
+      <>
       {/* Photo. Outer wrapper: scroll-linked blur/scale/parallax. Middle
           wrapper: one-off settle `scale 1.12 → 1` once the preloader lets go.
           Inner wrapper: the 20s Ken Burns loop. All three compose because they
@@ -153,11 +164,17 @@ export default function Hero({ image, headline, sub }: HeroProps) {
           </motion.div>
         </motion.div>
       </motion.div>
+      </>
+      )}
 
       {/* Bottom scrim: fades the photo into the paper so the next section blends. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-linear-to-t from-paper via-paper/55 via-45% to-transparent"
+        className={
+          video
+            ? "pointer-events-none absolute inset-x-0 bottom-0 h-[60%] bg-linear-to-t from-ink/75 via-ink/30 via-45% to-transparent"
+            : "pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-linear-to-t from-paper via-paper/55 via-45% to-transparent"
+        }
       />
 
       {/* Copy. Bottom padding clears the 51px scroll hint by ≥29px even on a 667px-tall phone. */}
@@ -173,13 +190,13 @@ export default function Hero({ image, headline, sub }: HeroProps) {
             stagger={HEADLINE_STAGGER}
             byLetter
             markup
-            className="font-display col-span-12 text-balance text-[clamp(64px,10vw,168px)] font-light leading-[0.95] tracking-[-0.02em] text-ink md:col-span-8 lg:col-span-9"
+            className={`font-display col-span-12 text-balance text-[clamp(64px,10vw,168px)] font-light leading-[0.95] tracking-[-0.02em] md:col-span-8 lg:col-span-9 ${video ? "text-paper" : "text-ink"}`}
           />
 
           <Reveal
             trigger={trigger}
             delay={SUB_DELAY}
-            className="col-span-12 max-w-[32ch] text-ink-soft md:col-span-4 md:col-start-9 md:mb-2 md:justify-self-end lg:col-span-3 lg:col-start-10"
+            className={`col-span-12 max-w-[32ch] md:col-span-4 md:col-start-9 md:mb-2 md:justify-self-end lg:col-span-3 lg:col-start-10 ${video ? "text-paper/85" : "text-ink-soft"}`}
           >
             <p>{sub}</p>
           </Reveal>
@@ -190,19 +207,19 @@ export default function Hero({ image, headline, sub }: HeroProps) {
       <div className="pointer-events-none absolute inset-x-0 bottom-5 flex justify-center">
         <Reveal trigger={trigger} delay={HINT_DELAY} y={12}>
           <motion.div
-            className="flex flex-col items-center gap-2 text-ink"
+            className={`flex flex-col items-center gap-2 ${video ? "text-paper" : "text-ink"}`}
             style={{ opacity: hintOpacity }}
           >
             <span className="label">Scroll</span>
             {/* 1px track; the ink line inside grows from the top on a 2s loop
                 (MOTION.md), then fades out before the next pass so the reset
                 is never a hard cut back to zero. */}
-            <span className="relative block h-8 w-px overflow-hidden bg-ink/25" aria-hidden="true">
+            <span className={`relative block h-8 w-px overflow-hidden ${video ? "bg-paper/30" : "bg-ink/25"}`} aria-hidden="true">
               {reduce ? (
-                <span className="absolute inset-0 bg-ink" />
+                <span className={`absolute inset-0 ${video ? "bg-paper" : "bg-ink"}`} />
               ) : (
                 <motion.span
-                  className="absolute inset-0 origin-top bg-ink will-change-transform"
+                  className={`absolute inset-0 origin-top will-change-transform ${video ? "bg-paper" : "bg-ink"}`}
                   animate={{ scaleY: [0, 1, 1], opacity: [1, 1, 0] }}
                   transition={{
                     duration: 2,

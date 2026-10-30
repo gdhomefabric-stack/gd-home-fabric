@@ -42,7 +42,7 @@ page.on("console", (m) => {
 page.on("pageerror", (e) => logs.push(`pageerror: ${e.message}`));
 page.on("requestfailed", (r) => logs.push(`requestfailed: ${r.url()} ${r.failure()?.errorText ?? ""}`));
 
-await page.goto(url, { waitUntil: "networkidle", timeout: 90_000 });
+await page.goto(url, { waitUntil: "load", timeout: 90_000 });
 // wait for the preloader to finish (or 6s)
 await page
   .waitForFunction(() => document.documentElement.dataset.ready === "true", null, { timeout: 6_000 })
