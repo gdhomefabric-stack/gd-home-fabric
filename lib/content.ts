@@ -39,7 +39,9 @@ export const content: SiteContent = {
       "Goose feather pillows in a 500 thread count pure cotton shell, in Standard, Queen and King. Sold only on Amazon.in.",
     introLine: "Soft enough to sink into, dense enough to hold the head level.",
     // Owner's 48 s brand film (H.264/AAC, 1280×720, faststart, 15.5 MB, 30 Oct 2026).
-    heroVideo: { src: "/video/brand.mp4", poster: "/video/brand-poster.jpg" },
+    // endAt: the file's closing brand-name card starts after 45.0 s; owner asked
+    // not to show it (30 Oct), so the loop restarts at 44.8 s.
+    heroVideo: { src: "/video/brand.mp4", poster: "/video/brand-poster.jpg", endAt: 44.8 },
   },
 
   nav: {

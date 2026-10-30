@@ -109,6 +109,11 @@ export type HeroVideo = {
   mobileSrc?: string;
   /** Still frame shown before playback and when autoplay is off */
   poster: string;
+  /**
+   * Seconds at which the loop restarts, to skip a closing title card in the
+   * file (the owner's film shows the brand name from 45 s). Default: the end.
+   */
+  endAt?: number;
 };
 
 export type Faq = { q: string; a: string };

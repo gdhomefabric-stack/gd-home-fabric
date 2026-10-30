@@ -64,6 +64,30 @@ export default function HeroVideo({ video, label }: Props) {
     return () => io.disconnect();
   }, [src, autoplay, ready]);
 
+  // Early loop: fade out over the last FADE_S before `endAt`, jump to 0, fade
+  // back in. Checked every frame (timeupdate is only ~4 Hz, too coarse to stop
+  // before the title card).
+  const [fading, setFading] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    const endAt = video.endAt;
+    if (!el || !endAt) return;
+    const FADE_S = 0.45;
+    let raf = 0;
+    const tick = () => {
+      const t = el.currentTime;
+      if (t >= endAt) {
+        el.currentTime = 0;
+        setFading(false);
+      } else {
+        setFading(t >= endAt - FADE_S);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [video.endAt, src]);
+
   const togglePlay = () => {
     const el = ref.current;
     if (!el) return;
@@ -92,7 +116,7 @@ export default function HeroVideo({ video, label }: Props) {
     <>
       <video
         ref={ref}
-        className="absolute inset-0 h-full w-full object-cover"
+        className={`absolute inset-0 h-full w-full bg-ink object-cover transition-opacity duration-[450ms] ${fading ? "opacity-0" : "opacity-100"}`}
         src={src ?? undefined}
         poster={video.poster}
         muted

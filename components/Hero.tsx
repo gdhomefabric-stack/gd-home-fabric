@@ -121,7 +121,7 @@ export default function Hero({ image, video, headline, sub }: HeroProps) {
       {video ? (
         // Brand film: full-bleed, sharp from the first frame; only the gentle
         // parallax remains so the hero still leaves the screen softly.
-        <motion.div className="absolute inset-0 will-change-transform" style={{ y: imageY }}>
+        <motion.div className="absolute inset-0 bg-ink will-change-transform" style={{ y: imageY }}>
           <HeroVideo video={video} label={`${image.alt}. GD Home Fabric brand film.`} />
         </motion.div>
       ) : (
