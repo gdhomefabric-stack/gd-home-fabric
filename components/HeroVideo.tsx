@@ -48,6 +48,10 @@ export default function HeroVideo({ video, label }: Props) {
     if (autoplay) {
       el.currentTime = 0;
       el.play().catch(() => setPlaying(false));
+    } else if (!userPaused.current && !el.paused) {
+      // The reduced-motion / data-saver preference resolves just after
+      // hydration; a film that already started under the default must stop.
+      el.pause();
     }
     const io = new IntersectionObserver(
       ([entry]) => {
