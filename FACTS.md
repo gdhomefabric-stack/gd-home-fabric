@@ -7,15 +7,14 @@ here, it does not go on the site.
 
 ## Brand
 
-- Brand name on Amazon: **GD Home Fabric**. Seller: GD Home Fabric. Legal entity: HiChoice Exports.
+- Brand name on Amazon: **GD Home Fabric**. Seller: GD Home Fabric. Legal entity: **Rohit Exim** (owner, 30 Oct 2026; replaces "HiChoice Exports").
 - Amazon's brand panel shows **"6+ years on Amazon"**.
 - The brand sells **curtains and pillows** on Amazon.in. Curtain fabrics: velvet, linen, faux-silk, blackout.
 - Pillows are sold **only on Amazon.in** (no direct checkout on the site).
 
 ## The pillow (all five pillow offers share these listing bullets)
 
-- **Fill:** goose feather (Amazon "Fill Material: Goose Feather"). Say "goose feather fill". Do **not**
-  repeat the title's "goose down & duck feather" or the bullet's "Polish"/"five star hotel" wording.
+- **Fill (owner, 27 Oct 2026; live listing):** **goose down & duck feather**, "a natural blend of soft goose down and springy duck feather; the down adds softness and the feather adds bounce". Never say "goose feather" alone. Still never use "Polish"/"five star hotel" wording.
 - Feather moves with you and springs back; **shake the pillow each morning** to restore full loft.
 - **Cover/shell:** **500 thread count pure cotton**, tight **downproof** weave that keeps the feather in
   and lets air move through; cotton breathes in a way polyester does not.

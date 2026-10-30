@@ -189,7 +189,7 @@ function structuredData() {
  * every phrase is a FACTS.md fact, nothing more.
  */
 const TICKER_PHRASES = [
-  "Goose feather",
+  "Goose down & duck feather",
   "500 thread count cotton",
   "Standard, Queen, King",
   "Vacuum packed",

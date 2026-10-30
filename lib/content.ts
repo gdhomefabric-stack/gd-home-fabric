@@ -30,13 +30,13 @@ export const content: SiteContent = {
   brand: {
     name: "GD Home Fabric",
     wordmark: "GD HOME FABRIC",
-    tagline: "Goose feather pillows, on Amazon.in.",
+    tagline: "Goose down & duck feather pillows, on Amazon.in.",
     preloaderLine: "Curtains and pillows, on Amazon.in.",
     // `*word*` marks the one italic accent per headline (TextReveal `markup`);
     // the asterisks never reach the page.
-    heroHeadline: "Goose feather, in *pure* cotton.",
+    heroHeadline: "Goose down & duck feather, in *pure* cotton.",
     heroSub:
-      "Goose feather pillows in a 500 thread count pure cotton shell, in Standard, Queen and King. Sold only on Amazon.in.",
+      "Goose down & duck feather pillows in a 500 thread count pure cotton shell, in Standard, Queen and King. Sold only on Amazon.in.",
     introLine: "Soft enough to sink into, dense enough to hold the head level.",
     // Owner's 48 s brand film (H.264/AAC, 1280×720, faststart, 15.5 MB, 30 Oct 2026).
     // endAt: the file's closing brand-name card starts after 45.0 s; owner asked
@@ -73,11 +73,11 @@ export const content: SiteContent = {
     {
       index: "01",
       slug: "goose-feather-pillow",
-      title: "Goose *Feather* Pillow",
+      title: "Goose Down & Duck *Feather* Pillow",
       body:
-        "Goose feather fill, in a white, plain, rectangular bed pillow. The feather moves with you and springs back. The pillow is soft enough to sink into and dense enough to hold the head level. It suits back and side sleepers, and people who find memory foam too firm or fibre pillows too flat. Sold only on Amazon.in, in Standard, Queen and King.",
+        "A natural blend of soft goose down and springy duck feather, in a white, plain, rectangular bed pillow. The down adds softness and the feather adds bounce; it moves with you and springs back. The pillow is soft enough to sink into and dense enough to hold the head level. It suits back and side sleepers, and people who find memory foam too firm or fibre pillows too flat. Sold only on Amazon.in, in Standard, Queen and King.",
       items: [
-        "Goose feather fill",
+        "Goose down & duck feather fill",
         "Soft enough to sink into, dense enough to hold the head level",
         "Suits back and side sleepers",
         "For people who find memory foam too firm or fibre pillows too flat",
@@ -155,7 +155,7 @@ export const content: SiteContent = {
   manifesto: {
     eyebrow: "GD Home Fabric",
     text:
-      "A pillow is a *simple* thing. Goose feather, held in a 500 thread count pure cotton shell that keeps the feather in and lets the air through. Three sizes. Sold on Amazon.in, where GD Home Fabric has been for 6+ years.",
+      "A pillow is a *simple* thing. Goose down and duck feather, held in a 500 thread count pure cotton shell that keeps the down and feather in and lets the air through. Three sizes. Sold on Amazon.in, where GD Home Fabric has been for 6+ years.",
   },
 
   // AESTHETIC.md: the two full-bleed photo bands, in page order (`band-01`,
@@ -170,11 +170,11 @@ export const content: SiteContent = {
   products: [
     {
       slug: "goose-feather-pillow",
-      name: "Goose Feather Pillow",
-      tagline: "Goose feather fill in a 500 thread count pure cotton shell.",
-      fill: "Goose feather",
+      name: "Goose Down & Duck Feather Pillow",
+      tagline: "Goose down & duck feather fill in a 500 thread count pure cotton shell.",
+      fill: "Goose down & duck feather",
       shell: "500 thread count pure cotton, downproof weave",
-      material: "Goose feather",
+      material: "Goose down & duck feather",
       benefits: [
         "Soft enough to sink into, dense enough to hold the head level",
         "Feather moves with you and springs back",
@@ -297,7 +297,7 @@ export const content: SiteContent = {
     title: "6+ *years* on Amazon.in.",
     paragraphs: [
       "GD Home Fabric has been on Amazon.in for 6+ years, selling curtains and pillows. The curtains come in velvet, linen, faux-silk and blackout.",
-      "The seller is GD Home Fabric, and the legal entity is HiChoice Exports. Pillows are sold only on Amazon.in; there is no checkout on this site.",
+      "The seller is GD Home Fabric, and the legal entity is Rohit Exim. Pillows are sold only on Amazon.in; there is no checkout on this site.",
     ],
     stats: [
       { value: "6+", label: "years on Amazon.in" },
@@ -387,7 +387,7 @@ export const content: SiteContent = {
     email: CONTACT.email,
     amazonStore: CONTACT.amazonStore,
     address: CONTACT.address,
-    legal: "© 2026 GD Home Fabric · HiChoice Exports",
+    legal: "© 2026 GD Home Fabric · Rohit Exim",
   },
 };
 

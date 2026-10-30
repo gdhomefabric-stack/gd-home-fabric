@@ -17,18 +17,18 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://gdhomefabr
 export const SITE_NAME = "GD Home Fabric";
 
 /** Default <title> for the home page; child routes use `"%s | GD Home Fabric"`. */
-export const SITE_TITLE = "GD Home Fabric | Goose feather pillows on Amazon.in";
+export const SITE_TITLE = "GD Home Fabric | Goose down & duck feather pillows on Amazon.in";
 
 export const SITE_DESCRIPTION =
-  "GD Home Fabric goose feather pillows with a 500 thread count pure cotton shell, in Standard 17 × 27 in, Queen 20 × 30 in and King 20 × 36 in. Sold only on Amazon.in.";
+  "GD Home Fabric goose down & duck feather pillows with a 500 thread count pure cotton shell, in Standard 17 × 27 in, Queen 20 × 30 in and King 20 × 36 in. Sold only on Amazon.in.";
 
 export const SITE_LOCALE = "en_IN";
 
 /** Legal entity behind the brand, used in Organization structured data. */
-export const SITE_LEGAL_NAME = "HiChoice Exports";
+export const SITE_LEGAL_NAME = "Rohit Exim";
 
 export const SITE_KEYWORDS = [
-  "goose feather pillow",
+  "goose down and duck feather pillow",
   "feather pillow",
   "500 thread count cotton pillow",
   "17 x 27 pillow",
